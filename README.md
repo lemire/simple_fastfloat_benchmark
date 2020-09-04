@@ -7,5 +7,5 @@ go in the directory and type the following commands:
 ```
 cmake -B build .
 cmake --build build
-./build/repro
+./build/benchmarks/benchmark 
 ```
