@@ -59,7 +59,7 @@ struct parsed_number_string {
 // Assuming that you use no more than 17 digits, this will
 // parse an ASCII string.
 fastfloat_really_inline
-parsed_number_string parse_number_string(const char *p, const char *pend) noexcept {
+parsed_number_string parse_number_string(const char *p, const char *pend, chars_format fmt) noexcept {
   parsed_number_string answer;
   answer.valid = false;
   bool found_minus = (*p == '-');
@@ -113,6 +113,7 @@ parsed_number_string parse_number_string(const char *p, const char *pend) noexce
       int32_t(p - start_digits - 1); // used later to guard against overflows
   
   if ((p != pend) && (('e' == *p) || ('E' == *p))) {
+    if((fmt & chars_format::fixed) && !(fmt & chars_format::scientific)) { return answer; } 
     int64_t exp_number = 0;            // exponential part
     ++p;
     bool neg_exp = false;
@@ -133,6 +134,8 @@ parsed_number_string parse_number_string(const char *p, const char *pend) noexce
       ++p;
     }
     exponent += (neg_exp ? -exp_number : exp_number);
+  } else {
+    if((fmt & chars_format::scientific) && !(fmt & chars_format::fixed)) { return answer; } 
   }
   answer.lastmatch = p;
   answer.valid = true;

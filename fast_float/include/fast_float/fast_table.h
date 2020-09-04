@@ -3,6 +3,8 @@
 #include <cstdint>
 
 namespace fastfloat {
+constexpr int smallest_power_of_five = -344;
+constexpr int largest_power_of_five = 308;
 // truncated powers of five from 5^-344 all the way to 5^308
 const uint64_t power_of_five_128[]= {
 0xd000000000000000,0x8000000000000000,

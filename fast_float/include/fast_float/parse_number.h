@@ -76,7 +76,7 @@ from_chars_result parse_infnan(const char *first, const char *last, T &value)  n
 
 template<typename T>
 from_chars_result from_chars(const char *first, const char *last,
-                             T &value)  noexcept  {
+                             T &value, chars_format fmt = chars_format::general)  noexcept  {
 
   from_chars_result answer;
   while ((first != last) && fastfloat::is_space(*first)) {
@@ -87,7 +87,7 @@ from_chars_result from_chars(const char *first, const char *last,
     answer.ptr = first;
     return answer;
   }
-  parsed_number_string pns = parse_number_string(first, last);
+  parsed_number_string pns = parse_number_string(first, last, fmt);
   if (!pns.valid) {
     return parse_infnan(first, last, value);
   }

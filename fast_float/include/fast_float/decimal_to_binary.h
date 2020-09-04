@@ -66,11 +66,14 @@ value128 complete_long_product(int64_t q, uint64_t w) {
 }
 
 
+
 // will compute w * 5**q
 fastfloat_really_inline
 value128 compute_product(int64_t q, uint64_t w) {
-  value128 firstproduct = full_multiplication(w, power_of_five_128[2 * (q + 344)]);
-  value128 secondproduct = full_multiplication(w, power_of_five_128[2 * (q + 344) + 1]);
+  const int index = 2 * int(q - smallest_power_of_five);
+  value128 firstproduct = full_multiplication(w, power_of_five_128[index]);
+  // regarding the second product, we only need secondproduct.high, but our expectation is that the compiler will optimize this extra work away if needed.
+  value128 secondproduct = full_multiplication(w, power_of_five_128[index + 1]);
   firstproduct.low += secondproduct.high;
   if(secondproduct.high > firstproduct.low) {
     firstproduct.high++;
