@@ -1,5 +1,6 @@
 # simple_fastfloat_benchmark
 
+Your compiler needs to support C++17.
 
 If you have a recent version of CMake (3.15 or better) under linux, macOS or freeBSD,  you can simply
 go in the directory and type the following commands:
