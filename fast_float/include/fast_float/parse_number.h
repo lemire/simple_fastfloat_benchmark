@@ -77,6 +77,8 @@ from_chars_result parse_infnan(const char *first, const char *last, T &value)  n
 template<typename T>
 from_chars_result from_chars(const char *first, const char *last,
                              T &value, chars_format fmt = chars_format::general)  noexcept  {
+  static_assert (std::is_same<T, double>::value || std::is_same<T, float>::value, "only float and double are supported");
+
 
   from_chars_result answer;
   while ((first != last) && fastfloat::is_space(*first)) {
@@ -93,8 +95,15 @@ from_chars_result from_chars(const char *first, const char *last,
   }
   answer.ec = std::errc(); // be optimistic
   answer.ptr = pns.lastmatch;
-  // Here we could use a fast path for small values of pns.exponent, but it is not very advantageous given how
-  // fast compute_float is.
+
+  if (binary_format<T>::min_exponent_fast_path() <= pns.exponent && pns.exponent <= binary_format<T>::max_exponent_fast_path() && pns.mantissa <=binary_format<T>::max_mantissa_fast_path()) {
+    value = T(pns.mantissa );
+    if (pns.exponent < 0) { value = value / binary_format<T>::powers_of_ten[-pns.exponent]; } 
+    else { value = value * binary_format<T>::powers_of_ten[pns.exponent]; }
+    if (pns.negative) { value = -value; }
+    return answer;
+  }
+
   adjusted_mantissa am = pns.too_many_digits ? 
     parse_long_mantissa<binary_format<T>>(first,last) 
     : compute_float<binary_format<T>>(pns.exponent, pns.mantissa);

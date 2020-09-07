@@ -1,6 +1,7 @@
 #ifndef FASTFLOAT_FLOAT_COMMON_H
 #define FASTFLOAT_FLOAT_COMMON_H
 
+#include <cfloat>
 #include <cstdint>
 #ifndef _WIN32
 // strcasecmp, strncasecmp 
@@ -25,6 +26,10 @@
 #define fastfloat_strncasecmp strncasecmp
 #endif
 namespace fastfloat {
+#ifndef FLT_EVAL_METHOD
+#error "FLT_EVAL_METHOD should be defined, please include cfloat."
+#endif
+
 
 enum chars_format {
     scientific = 1<<0,
@@ -32,6 +37,9 @@ enum chars_format {
     hex = 1<<3,
     general = fixed | scientific
 };
+
+
+
 
 bool is_space(uint8_t c) {
     static const bool table[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -138,6 +146,15 @@ struct binary_format {
   static constexpr int infinite_power();
   static constexpr int max_power_for_even();
   static constexpr int sign_index();
+  static constexpr int min_exponent_fast_path();
+  static constexpr int max_exponent_fast_path();
+  static constexpr uint64_t max_mantissa_fast_path();
+
+
+  constexpr static T powers_of_ten[] = {
+    1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
+    1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
+
 };
 template <>
 constexpr int binary_format<double>::mantissa_explicit_bits() {
@@ -182,6 +199,43 @@ constexpr int binary_format<double>::sign_index() {
 template <>
 constexpr int binary_format<float>::sign_index() {
   return 31;
+}
+
+template <>
+constexpr int binary_format<double>::min_exponent_fast_path() { 
+#if (FLT_EVAL_METHOD != 1) && (FLT_EVAL_METHOD != 0)
+  return 0;
+#else
+  return -22;
+#endif
+}
+template <>
+constexpr int binary_format<float>::min_exponent_fast_path() {
+#if (FLT_EVAL_METHOD != 1) && (FLT_EVAL_METHOD != 0)
+  return 0;
+#else
+  return -10;
+#endif
+}
+
+
+template <>
+constexpr int binary_format<double>::max_exponent_fast_path() { 
+  return 22;
+}
+template <>
+constexpr int binary_format<float>::max_exponent_fast_path() {
+  return 10;
+}
+
+
+template <>
+constexpr uint64_t binary_format<double>::max_mantissa_fast_path() { 
+  return uint64_t(2) << mantissa_explicit_bits();
+}
+template <>
+constexpr uint64_t binary_format<float>::max_mantissa_fast_path() {
+  return uint64_t(2) << mantissa_explicit_bits();
 }
 
 
