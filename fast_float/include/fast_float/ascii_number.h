@@ -62,15 +62,13 @@ fastfloat_really_inline
 parsed_number_string parse_number_string(const char *p, const char *pend, chars_format fmt) noexcept {
   parsed_number_string answer;
   answer.valid = false;
-  bool found_minus = (*p == '-');
-  answer.negative = false;
-  if (found_minus) {
+  answer.negative = (*p == '-');
+  if ((*p == '-') || (*p == '+')) {
     ++p;
     if (p == pend) {
       return answer;
     }
-    answer.negative = true;
-    if (!is_integer(*p) && (*p != '.')) { // a negative sign must be followed by an integer or the dot
+    if (!is_integer(*p) && (*p != '.')) { // a  sign must be followed by an integer or the dot
       return answer;
     }
   }
