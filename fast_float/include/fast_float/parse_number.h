@@ -98,8 +98,8 @@ from_chars_result from_chars(const char *first, const char *last,
 
   if (binary_format<T>::min_exponent_fast_path() <= pns.exponent && pns.exponent <= binary_format<T>::max_exponent_fast_path() && pns.mantissa <=binary_format<T>::max_mantissa_fast_path()) {
     value = T(pns.mantissa );
-    if (pns.exponent < 0) { value = value / binary_format<T>::powers_of_ten[-pns.exponent]; } 
-    else { value = value * binary_format<T>::powers_of_ten[pns.exponent]; }
+    if (pns.exponent < 0) { value = value / binary_format<T>::exact_power_of_ten(-pns.exponent); } 
+    else { value = value * binary_format<T>::exact_power_of_ten(pns.exponent); }
     if (pns.negative) { value = -value; }
     return answer;
   }

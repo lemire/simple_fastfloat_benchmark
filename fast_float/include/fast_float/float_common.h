@@ -149,13 +149,14 @@ struct binary_format {
   static constexpr int min_exponent_fast_path();
   static constexpr int max_exponent_fast_path();
   static constexpr uint64_t max_mantissa_fast_path();
-
-
-  constexpr static T powers_of_ten[] = {
+  static constexpr T exact_power_of_ten(int64_t power);
+  constexpr static double powers_of_ten_double[] = {
     1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
     1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
-
+  constexpr static float powers_of_ten_float[] = {
+    1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10};
 };
+
 template <>
 constexpr int binary_format<double>::mantissa_explicit_bits() {
   return 52;
@@ -238,6 +239,17 @@ constexpr uint64_t binary_format<float>::max_mantissa_fast_path() {
   return uint64_t(2) << mantissa_explicit_bits();
 }
 
+template <>
+constexpr double binary_format<double>::exact_power_of_ten(int64_t power) { 
+  return powers_of_ten_double[power];
+}
+template <>
+constexpr float binary_format<float>::exact_power_of_ten(int64_t power) {
+
+  return powers_of_ten_float[power];
+}
+
+ 
 
 } // namespace fastfloat
 
