@@ -172,12 +172,10 @@ decimal parse_decimal(const char *&p, const char *pend)  noexcept  {
   while (std::isspace(*p)) {
     p++;
   }
-  bool found_minus = (*p == '-');
-  answer.negative = found_minus;
-  if (found_minus) {
+  answer.negative = (*p == '-');
+  if ((*p == '-') || (*p == '+')) {
     ++p;
   }
-  //  const char *const start_digits = p;
 
   while ((p != pend) && (*p == '0')) {
     ++p;
