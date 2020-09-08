@@ -42,7 +42,7 @@ double findmax_strtod(std::vector<std::string> &s) {
   double x = 0;
   for (std::string &st : s) {
     char *pr = (char *)st.data();
-#ifdef _MSC_VER
+#ifdef _WIN32
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
     x = _strtod_l(st.data(), &pr,  c_locale);
 #else
