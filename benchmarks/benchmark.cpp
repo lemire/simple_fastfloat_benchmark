@@ -22,7 +22,6 @@
 
 #include <locale.h>
 
-
 /**
  * Determining whether we should import xlocale.h or not is 
  * a bit of a nightmare.
@@ -47,7 +46,7 @@ double findmax_strtod(std::vector<std::string> &s) {
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
     x = _strtod_l(st.data(), &pr,  c_locale);
 #else
-    static locale_t c_locale = newlocale(LC_ALL_MASK, NULL, NULL);
+    static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
     x = strtod_l(st.data(), &pr,  c_locale);
 #endif
     if ((pr == nullptr) || (pr == st.data())) {
