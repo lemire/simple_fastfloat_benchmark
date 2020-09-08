@@ -47,7 +47,7 @@ bool is_space(uint8_t c) {
 }
 
 namespace {
-constexpr uint32_t max_digits = 800;
+constexpr uint32_t max_digits = 768;
 
 constexpr int32_t decimal_point_range = 2047;
 } // namespace

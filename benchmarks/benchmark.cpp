@@ -20,12 +20,36 @@
 #include <vector>
 #include <charconv>
 
+#include <locale.h>
+
+
+/**
+ * Determining whether we should import xlocale.h or not is 
+ * a bit of a nightmare.
+ */
+#ifdef __GLIBC__
+#include <features.h>
+#if !((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ > 25)))
+#include <xlocale.h> // old glibc
+#endif
+#else // not glibc
+#ifndef _MSC_VER // assume that everything that is not GLIBC and not Visual Studio needs xlocale.h
+#include <xlocale.h>
+#endif
+#endif
+
 double findmax_strtod(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     char *pr = (char *)st.data();
-    x = strtod(st.data(), &pr);
+#ifdef _MSC_VER
+    static _locale_t c_locale = _create_locale(LC_ALL, "C");
+    x = _strtod_l(st.data(), &pr,  c_locale);
+#else
+    static locale_t c_locale = newlocale(LC_ALL_MASK, NULL, NULL);
+    x = strtod_l(st.data(), &pr,  c_locale);
+#endif
     if ((pr == nullptr) || (pr == st.data())) {
       throw std::runtime_error("bug in findmax_strtod");
     }
@@ -138,7 +162,7 @@ template <typename T> std::string accurate_to_string(T d) {
   std::string answer;
   answer.resize(64);
   auto written = std::snprintf(answer.data(), 64, "%.*e",
-                               std::numeric_limits<T>::max_digits10 - 1, d);
+                              std::numeric_limits<T>::max_digits10 - 1, d);
   answer.resize(written);
   return answer;
 }
