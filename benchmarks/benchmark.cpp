@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <vector>
 #include <charconv>
+#include <random>
 
 #include <locale.h>
 
@@ -157,6 +158,13 @@ void fileload(char *filename) {
   process(lines, volume);
 }
 
+/**
+ * This will generate a string with exactly the number of digits
+ * that are required to always be able to recover the original
+ * number (irrespective of the number). So 17 digits in the case
+ * of a double.
+ * E.g., 3.7018502067730191e-02
+ */
 template <typename T> std::string accurate_to_string(T d) {
   std::string answer;
   answer.resize(64);
@@ -169,10 +177,13 @@ template <typename T> std::string accurate_to_string(T d) {
 void demo(size_t howmany) {
   std::cout << "# parsing random integers in the range [0,1)" << std::endl;
   std::vector<std::string> lines;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> dis(0, 1);
   lines.reserve(howmany); // let us reserve plenty of memory.
   size_t volume = 0;
   for (size_t i = 0; i < howmany; i++) {
-    double x = (double)rand() / RAND_MAX;
+    double x =  dis(gen);
     std::string line = accurate_to_string(x);
     volume += line.size();
     lines.push_back(line);
