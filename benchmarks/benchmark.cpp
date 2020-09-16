@@ -120,6 +120,7 @@ std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
     average += dif;
     min_value = min_value < dif ? min_value : dif;
   }
+  average /= repeat;
   return std::make_pair(min_value, average);
 }
 
@@ -131,7 +132,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
                                  std::pair<double, double> result) {
     printf("%-40s: %8.2f MB/s (+/- %.1f %%)\n", name.data(),
            volumeMB * 1000000000 / result.first,
-           100 - (result.second - result.first) * 100.0 / result.second);
+           (result.second - result.first) * 100.0 / result.second);
   };
   pretty_print("strtod", time_it_ns(lines, findmax_strtod, repeat));
   pretty_print("abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
