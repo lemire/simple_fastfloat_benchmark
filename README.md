@@ -57,10 +57,26 @@ from_chars                              :   104.53 MB/s (+/- 2.0 %)
 
 GNU  GCC 9 (Linux):
 ```
-$ ./build/benchmarks/benchmark
-# parsing random integers in the range [0,1)
-strtod                                  :   183.82 MB/s (+/- 2.5 %)
-abseil                                  :   450.62 MB/s (+/- 2.5 %)
-fastfloat                               :  1086.27 MB/s (+/- 2.5 %)
+$ ./build/benchmarks/Release/benchmark.exe
+## parsing random integers in the range [0,1)
+volume = 2.09808 MB
+netlib                                  :   237.46 MB/s (+/- 0.7 %)
+strtod                                  :   191.46 MB/s (+/- 0.2 %)
+abseil                                  :   424.17 MB/s (+/- 0.1 %)
+fastfloat                               :  1086.65 MB/s (+/- 0.3 %)
 # You can also provide a filename: it should contain one string per line corresponding to a number
+$ ./build/benchmarks/benchmark data/canada.txt
+# read 111126 lines
+volume = 1.93374 MB
+netlib                                  :   237.87 MB/s (+/- 0.6 %)
+strtod                                  :   141.08 MB/s (+/- 0.6 %)
+abseil                                  :   369.22 MB/s (+/- 1.2 %)
+fastfloat                               :   782.45 MB/s (+/- 0.2 %)
+$ ./build/benchmarks/benchmark data/mesh.txt
+# read 73019 lines
+volume = 0.536009 MB
+netlib                                  :   299.96 MB/s (+/- 0.5 %)
+strtod                                  :   111.87 MB/s (+/- 1.7 %)
+abseil                                  :   208.33 MB/s (+/- 0.9 %)
+fastfloat                               :   664.53 MB/s (+/- 2.3 %)
 ```
