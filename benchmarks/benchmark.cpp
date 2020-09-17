@@ -3,6 +3,9 @@
 #include "absl/strings/numbers.h"
 #include "fast_float/parse_number.h"
 
+#define IEEE_8087
+#include "dtoa.c"
+
 #include <algorithm>
 #include <chrono>
 #include <climits>
@@ -37,6 +40,21 @@
 #include <xlocale.h>
 #endif
 #endif
+
+double findmax_netlib(std::vector<std::string> &s) {
+  double answer = 0;
+  double x = 0;
+  for (std::string &st : s) {
+    char *pr = (char *)st.data();
+    x = netlib_strtod(st.data(), &pr);
+    if (pr == st.data()) {
+      throw std::runtime_error("bug in findmax_netlib");
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
+
 
 double findmax_strtod(std::vector<std::string> &s) {
   double answer = 0;
@@ -134,6 +152,8 @@ void process(std::vector<std::string> &lines, size_t volume) {
            volumeMB * 1000000000 / result.first,
            (result.second - result.first) * 100.0 / result.second);
   };
+  
+  pretty_print("netlib", time_it_ns(lines, findmax_netlib, repeat));
   pretty_print("strtod", time_it_ns(lines, findmax_strtod, repeat));
   pretty_print("abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print("fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
