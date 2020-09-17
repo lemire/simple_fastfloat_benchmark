@@ -125,7 +125,7 @@ std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
 }
 
 void process(std::vector<std::string> &lines, size_t volume) {
-  size_t repeat = 40;
+  size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
   auto pretty_print = [volumeMB](std::string name,
