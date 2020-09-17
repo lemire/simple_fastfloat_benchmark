@@ -176,6 +176,7 @@ fastfloat_really_inline
   // but in practice, we can win big with the compute_product_approximation if its additional branch
   // is easily predicted. Which is best is data specific.
   uint64_t upperbit = product.high >> 63;
+
   answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
   lz += int(1 ^ upperbit);
   answer.power2 = power(int(q)) - lz - binary::minimum_exponent() + 1;
@@ -189,21 +190,25 @@ fastfloat_really_inline
   }
   // usually, we round *up*, but if we fall right in between and and we have an
   // even basis, we need to round down
-  uint64_t mask = (uint64_t(2) << (64 - binary::mantissa_explicit_bits() - 1))-1;
-  if ((product.low == 0) && (q >= 0) && (q <= binary::max_power_for_even()) &&
-      ((product.high & mask) == 0) &&
+  if ((product.low == 0) && (q >= 0) && (q <= binary::max_power_for_even()) &&   
       ((answer.mantissa & 3) == 1)) { // we may fall between two floats!
-    answer.mantissa ^= 1;             // flip it so that we do not round up
+    // To be in-between two floats we need that in doing
+    //   answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+    // ... we dropped out only zeroes. But if this happened, then we can go back!!! 
+    if((answer.mantissa  << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==  product.high) {
+      answer.mantissa ^= 1;             // flip it so that we do not round up
+    }
   }
+
   answer.mantissa += (answer.mantissa & 1); // round up
   answer.mantissa >>= 1;
-
   if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
     answer.mantissa = (uint64_t(1) << binary::mantissa_explicit_bits());
     answer.power2++; // undo previous addition
   }
 
   answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
+
   if (answer.power2 >= binary::infinite_power()) { // infinity
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;

@@ -22,7 +22,6 @@ void all_32bit_values() {
     memcpy(&v32, &word, sizeof(v32));
     double v = v32;
 
-    // if (!std::isnormal(v))
     {
       const char *string_end = to_string(v, buffer);
       double result_value;

@@ -21,7 +21,6 @@ void allvalues() {
     uint32_t word = uint32_t(w);
     memcpy(&v, &word, sizeof(v));
 
-    //if (std::isnormal(v))
     {
       const char *string_end = to_string(v, buffer);
       float result_value;
