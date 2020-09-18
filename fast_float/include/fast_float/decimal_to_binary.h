@@ -14,7 +14,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace fastfloat {
+namespace fast_float {
 
 
 
@@ -217,6 +217,6 @@ fastfloat_really_inline
 }
 
 
-} // namespace fastfloat
+} // namespace fast_float
 
 #endif

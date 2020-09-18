@@ -1,7 +1,7 @@
 
 #include "absl/strings/charconv.h"
 #include "absl/strings/numbers.h"
-#include "fast_float/parse_number.h"
+#include "fast_float/fast_float.h"
 
 #define IEEE_8087
 #include "dtoa.c"
@@ -98,7 +98,7 @@ double findmax_fastfloat(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
-    auto [p, ec] = fastfloat::from_chars(st.data(), st.data() + st.size(), x);
+    auto [p, ec] = fast_float::from_chars(st.data(), st.data() + st.size(), x);
     if (p == st.data()) {
       throw std::runtime_error("bug in findmax_fastfloat");
     }

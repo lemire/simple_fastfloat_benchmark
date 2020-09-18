@@ -1,4 +1,5 @@
-#include "fast_float/parse_number.h"
+#include "fast_float/fast_float.h"
+
 #include <vector>
 
 inline void Assert(bool Assertion) {
@@ -14,7 +15,7 @@ bool test() {
   const char * end = input.data() + input.size();
   for(size_t i = 0; i < answers.size(); i++) {
     T result_value;
-    auto result = fastfloat::from_chars(begin, end,
+    auto result = fast_float::from_chars(begin, end,
                                       result_value);
     if (result.ec != std::errc()) {
       printf("parsing %.*s\n", int(end - begin), begin);

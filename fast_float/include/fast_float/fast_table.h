@@ -2,7 +2,7 @@
 #define FASTFLOAT_FAST_TABLE_H
 #include <cstdint>
 
-namespace fastfloat {
+namespace fast_float {
 constexpr int smallest_power_of_five = -344;
 constexpr int largest_power_of_five = 308;
 // truncated powers of five from 5^-344 all the way to 5^308

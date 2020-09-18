@@ -11,7 +11,7 @@
 #include "ascii_number.h"
 #include <cstdint>
 
-namespace fastfloat {
+namespace fast_float {
 
 namespace {
 
@@ -321,5 +321,5 @@ adjusted_mantissa parse_long_mantissa(const char *first, const char *last) {
     return compute_float<binary>(d);
 }
 
-} // namespace fastfloat
+} // namespace fast_float
 #endif

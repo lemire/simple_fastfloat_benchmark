@@ -25,18 +25,12 @@
 #define fastfloat_strcasecmp strcasecmp
 #define fastfloat_strncasecmp strncasecmp
 #endif
-namespace fastfloat {
+namespace fast_float {
 #ifndef FLT_EVAL_METHOD
 #error "FLT_EVAL_METHOD should be defined, please include cfloat."
 #endif
 
 
-enum chars_format {
-    scientific = 1<<0,
-    fixed = 1<<2,
-    hex = 1<<3,
-    general = fixed | scientific
-};
 
 
 
@@ -251,6 +245,6 @@ constexpr float binary_format<float>::exact_power_of_ten(int64_t power) {
 
  
 
-} // namespace fastfloat
+} // namespace fast_float
 
 #endif

@@ -2,7 +2,7 @@
 #define FASTFLOAT_TABLES_NEGATIVE_H
 #include <cstdint>
 
-namespace fastfloat {
+namespace fast_float {
 /**
  * Though this table contains over a thousand elements, most of it is never
  * accessed in practice.
@@ -2692,5 +2692,5 @@ const uint16_t negative_index_into_powers_of_five[][2] = {
     {110, 1553}, {138, 1787}, {165, 1993}, {193, 2172}, {221, 2323},
     {248, 2446}, {276, 2542}, {303, 2610}, {331, 2651}, {344, 0},
 };
-} // namespace fastfloat
+} // namespace fast_float
 #endif

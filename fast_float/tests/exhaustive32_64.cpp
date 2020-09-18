@@ -1,5 +1,6 @@
 
-#include "fast_float/parse_number.h"
+#include "fast_float/fast_float.h"
+
 
 #include <cassert>
 #include <cmath>
@@ -25,7 +26,7 @@ void all_32bit_values() {
     {
       const char *string_end = to_string(v, buffer);
       double result_value;
-      auto result = fastfloat::from_chars(buffer, string_end, result_value);
+      auto result = fast_float::from_chars(buffer, string_end, result_value);
       if (result.ec != std::errc()) {
         std::cerr << "parsing error ? " << buffer << std::endl;
         abort();

@@ -8,7 +8,7 @@
 
 #include "float_common.h"
 
-namespace fastfloat {
+namespace fast_float {
 
 fastfloat_really_inline bool is_integer(char c)  noexcept  { return (c >= '0' && c <= '9'); }
 
@@ -225,6 +225,6 @@ decimal parse_decimal(const char *&p, const char *pend)  noexcept  {
   answer.decimal_point += answer.num_digits;
   return answer;
 }
-} // namespace fastfloat
+} // namespace fast_float
 
 #endif

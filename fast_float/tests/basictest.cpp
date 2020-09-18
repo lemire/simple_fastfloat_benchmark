@@ -1,4 +1,4 @@
-#include "fast_float/parse_number.h"
+#include "fast_float/fast_float.h"
 #include <iomanip>
 
 inline void Assert(bool Assertion) {
@@ -16,7 +16,7 @@ template <typename T> std::string to_string(T d) {
 
 bool demo32(std::string vals) {
   float result_value;
-  auto result = fastfloat::from_chars(vals.data(), vals.data() + vals.size(),
+  auto result = fast_float::from_chars(vals.data(), vals.data() + vals.size(),
                                       result_value);
   if (result.ec != std::errc()) {
     std::cerr << " I could not parse " << vals << std::endl;
@@ -29,7 +29,7 @@ bool demo32(std::string vals) {
 
 bool demo32(std::string vals, float val) {
   float result_value;
-  auto result = fastfloat::from_chars(vals.data(), vals.data() + vals.size(),
+  auto result = fast_float::from_chars(vals.data(), vals.data() + vals.size(),
                                       result_value);
   if (result.ec != std::errc()) {
     std::cerr << " I could not parse " << vals << std::endl;
@@ -62,7 +62,7 @@ bool demo32(float val) {
 
 bool demo64(std::string vals, double val) {
   double result_value;
-  auto result = fastfloat::from_chars(vals.data(), vals.data() + vals.size(),
+  auto result = fast_float::from_chars(vals.data(), vals.data() + vals.size(),
                                       result_value);
   if (result.ec != std::errc()) {
     std::cerr << " I could not parse " << vals << std::endl;

@@ -10,12 +10,8 @@
 #include <limits>
 #include <system_error>
 
-namespace fastfloat {
+namespace fast_float {
 
-struct from_chars_result {
-  const char *ptr;
-  std::errc ec;
-};
 
 namespace {
 /**
@@ -76,12 +72,12 @@ from_chars_result parse_infnan(const char *first, const char *last, T &value)  n
 
 template<typename T>
 from_chars_result from_chars(const char *first, const char *last,
-                             T &value, chars_format fmt = chars_format::general)  noexcept  {
+                             T &value, chars_format fmt /*= chars_format::general*/)  noexcept  {
   static_assert (std::is_same<T, double>::value || std::is_same<T, float>::value, "only float and double are supported");
 
 
   from_chars_result answer;
-  while ((first != last) && fastfloat::is_space(*first)) {
+  while ((first != last) && fast_float::is_space(*first)) {
     first++;
   }
   if (first == last) {
@@ -115,6 +111,6 @@ from_chars_result from_chars(const char *first, const char *last,
   return answer;
 }
 
-} // namespace fastfloat
+} // namespace fast_float
 
 #endif
