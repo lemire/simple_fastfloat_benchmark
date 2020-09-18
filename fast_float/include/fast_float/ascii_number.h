@@ -162,6 +162,79 @@ parsed_number_string parse_number_string(const char *p, const char *pend, chars_
 }
 
 // This should always succeed since it follows a call to parse_number_string.
+// It assumes that there are more than 19 mantissa digits to parse.
+parsed_number_string parse_truncated_decimal(const char *&p, const char *pend)  noexcept  {
+  parsed_number_string answer;
+  answer.valid = true;
+  answer.negative = (*p == '-');
+  if ((*p == '-') || (*p == '+')) {
+    ++p;
+  }
+  size_t number_of_digits{0};
+
+
+  uint64_t i = 0; 
+
+  while ((p != pend) && is_integer(*p)) {
+    // a multiplication by 10 is cheaper than an arbitrary integer
+    // multiplication
+    if(number_of_digits < 19) {
+
+      uint8_t digit = uint8_t(*p - '0');
+      i = 10 * i + digit;
+      number_of_digits ++;
+    }
+    ++p;
+  }
+  int64_t exponent = 0;
+  if ((p != pend) && (*p == '.')) {
+    ++p;
+    const char *first_after_period = p;
+   
+    while ((p != pend) && is_integer(*p)) {
+      if(number_of_digits < 19) {
+        uint8_t digit = uint8_t(*p - '0');
+        i = i * 10 + digit;
+        number_of_digits ++;
+      } else if (exponent == 0) {
+        exponent = first_after_period - p;
+      }
+      ++p;
+    }
+  }
+
+  if ((p != pend) && (('e' == *p) || ('E' == *p))) {
+    int64_t exp_number = 0;            // exponential part
+    ++p;
+    bool neg_exp = false;
+    if ((p != pend) && ('-' == *p)) {
+      neg_exp = true;
+      ++p;
+    } else if ((p != pend) && ('+' == *p)) {
+      ++p;
+    }
+    if ((p == pend) || !is_integer(*p)) {
+      return answer;
+    }
+    while ((p != pend) && is_integer(*p)) {
+      uint8_t digit = uint8_t(*p - '0');
+      if (exp_number < 0x10000) {
+        exp_number = 10 * exp_number + digit;
+      }
+      ++p;
+    }
+    exponent += (neg_exp ? -exp_number : exp_number);
+  } 
+  answer.lastmatch = p;
+  answer.valid = true;
+  answer.too_many_digits = true; // assumed
+  answer.exponent = exponent;
+  answer.mantissa = i;
+  return answer;
+}
+
+
+// This should always succeed since it follows a call to parse_number_string.
 decimal parse_decimal(const char *&p, const char *pend)  noexcept  {
   decimal answer;
   answer.num_digits = 0;

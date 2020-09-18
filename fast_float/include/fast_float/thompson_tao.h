@@ -9,6 +9,7 @@
  * code).
  **/
 #include "ascii_number.h"
+#include "decimal_to_binary.h"
 #include <cstdint>
 
 namespace fast_float {
@@ -324,7 +325,17 @@ adjusted_mantissa compute_float(decimal &d) {
 }
 
 template <typename binary>
-adjusted_mantissa parse_long_mantissa(const char *first, const char *last) {
+adjusted_mantissa parse_long_mantissa(const char *first, const char* last) {
+    // We try once more to avoid the long way:
+    const char *first_copy(first);
+    // important: the first parameter is passed by reference hence the copy
+    parsed_number_string truncated = parse_truncated_decimal(first_copy, last);
+    auto [am, truncated_ok] = compute_float_from_truncated<binary>(truncated.exponent, truncated.mantissa);
+    if(truncated_ok) {
+      first = first_copy;
+      return am;
+    }
+    // Ok. We have to work hard:
     decimal d = parse_decimal(first, last);
     return compute_float<binary>(d);
 }

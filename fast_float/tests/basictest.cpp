@@ -105,7 +105,7 @@ bool basic_test_64bit(double val) {
 }
 
 int main() {
-  std::cout << ""======= 32 bits " << std::endl;
+  std::cout << "======= 32 bits " << std::endl;
   Assert(basic_test_32bit("+1", 1));
   Assert(basic_test_32bit("2e3000", std::numeric_limits<float>::infinity()));
   Assert(basic_test_32bit("3.5028234666e38", std::numeric_limits<float>::infinity()));
