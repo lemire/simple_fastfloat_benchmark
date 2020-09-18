@@ -16,8 +16,6 @@ struct from_chars_result {
 };
 ```
 
-
-
 It parses the character sequence [first,last) for number. It parses floating-point numbers expecting
 a locale-indepent format equivalent to what is used by std::strtod in the default ("C") locale. 
 The resulting floating-point value is the closest floating-point values (using either float or double), 
@@ -50,3 +48,12 @@ the type `fast_float::chars_format`. It is a bitset value: we check whether
 `fmt & fast_float::chars_format::fixed` and `fmt & fast_float::chars_format::scientific` are set
 to determined whether we allowed the fixed point and scientific notation respectively.
 The default is  `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
+
+## Requirements and Limitations
+
+In many cases, this library can be used as a drop-in replacement for the C++17 `from_chars` function, especially
+when performance is a concerned. Thus we expect C++17 support. Though it might be reasonable to want
+C++17 features as part of older compilers, it is not an objective of this library.
+
+The `from_chars` is meant to be locale-independent. Thus it is not an objective of this library to support
+locale-sensitive parsing.

@@ -217,6 +217,106 @@ fastfloat_really_inline
 }
 
 
+
+// This function is like compute_product but we
+// assume that the true value of w is only known to be in (w,w+1)
+fastfloat_really_inline
+std::pair<uint64_t, uint64_t> compute_product_truncated(int64_t q, uint64_t w) {
+  const int index = 2 * int(q - smallest_power_of_five);
+  uint64_t multiplier_high {power_of_five_128[index]};
+  uint64_t multiplier_low {power_of_five_128[index + 1]};
+  value128 lower_bound = full_multiplication(w, multiplier_high);
+  value128 secondproduct = full_multiplication(w, multiplier_low);
+  lower_bound.low += secondproduct.high;
+  if(secondproduct.high > lower_bound.low) {
+    lower_bound.high++;
+  }
+
+  // At this point lower_bound is a lower bound. Next, we compute the upper
+  // bound.
+
+  // Obviously, we can avoid redoing the multiplications, but this code is
+  // simpler:
+
+  value128 upper_bound = full_multiplication(w + 1, multiplier_high);
+  secondproduct = full_multiplication(w + 1, multiplier_low + 1);
+  lower_bound.low += secondproduct.high;
+  if(upper_bound.high > lower_bound.low) {
+    upper_bound.high++;
+  }
+  return std::make_pair(upper_bound.high, upper_bound.high;
+}
+
+
+// w * 10 ** q assumes that w was truncated so that 
+// the real value is in (w,w+1).
+// This function does not always succeed.
+template <typename binary>
+fastfloat_really_inline
+std::pair<adjusted_mantissa, bool> compute_float_from_truncated(int64_t q, uint64_t w)  noexcept  {
+  adjusted_mantissa answer;
+  if (w == 0) { // This never happen!!! Let us fail.
+    return std::make_pair (answer,false);
+  }
+  if (q > 308) {
+    // we want to get infinity:
+    answer.power2 = binary::infinite_power();
+    answer.mantissa = 0;
+    return std::make_pair (answer,true);
+  } else if (q < -324 - 19) {
+    // should be zero
+    answer.power2 = 0;
+    answer.mantissa = 0;
+    return std::make_pair (answer,true);
+  }
+
+  // We want the most significant bit of i to be 1. Shift if needed.
+  int lz = leading_zeroes(w);
+  w <<= lz;
+
+  // The required precision is binary::mantissa_explicit_bits() + 3 because
+  // 1. We need the implicit bit
+  // 2. We need an extra bit for rounding purposes
+  // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a shift)
+  auto [lower,upper] = compute_product_truncated(q, w);
+  uint64_t xor_lower_upper{lower ^ upper};
+
+  constexpr uint64_t precision_mask{uint64_t(0xFFFFFFFFFFFFFFFF) >> (64 - binary::mantissa_explicit_bits() - 3)};
+  if(xor_lower_upper & precision_mask) {
+    // we do not have the desired precision
+    return std::make_pair (answer,false);
+  }
+  uint64_t upperbit = product.high >> 63;
+
+  answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+  lz += int(1 ^ upperbit);
+  answer.power2 = power(int(q)) - lz - binary::minimum_exponent() + 1;
+
+  if (answer.power2 <= 0) { // we have a subnormal?
+    answer.mantissa >>= -answer.power2 + 1;
+    answer.mantissa += (answer.mantissa & 1); // round up
+    answer.mantissa >>= 1;
+    answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
+    return std::make_pair (answer,true);
+  }
+
+  answer.mantissa += (answer.mantissa & 1); // round up
+  answer.mantissa >>= 1;
+  if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
+    answer.mantissa = (uint64_t(1) << binary::mantissa_explicit_bits());
+    answer.power2++; // undo previous addition
+  }
+
+  answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
+
+  if (answer.power2 >= binary::infinite_power()) { // infinity
+    answer.power2 = binary::infinite_power();
+    answer.mantissa = 0;
+  }
+  return std::make_pair (answer,true);
+}
+
+
 } // namespace fast_float
 
 #endif
