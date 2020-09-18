@@ -14,6 +14,14 @@ template <typename T> std::string to_string(T d) {
   return s;
 }
 
+template <typename T> std::string to_long_string(T d) {
+  std::string s(64, '\0');
+  auto written = std::snprintf(&s[0], s.size(), "%.*e",
+                               std::numeric_limits<T>::max_digits10 * 10, d);
+  s.resize(written);
+  return s;
+}
+
 bool demo32(std::string vals) {
   float result_value;
   auto result = fast_float::from_chars(vals.data(), vals.data() + vals.size(),
@@ -56,6 +64,8 @@ bool demo32(std::string vals, float val) {
 }
 
 bool demo32(float val) {
+  std::string long_vals = to_long_string(val);
+  return demo32(long_vals, val);
   std::string vals = to_string(val);
   return demo32(vals, val);
 }
@@ -84,6 +94,8 @@ bool demo64(std::string vals, double val) {
   return true;
 }
 bool demo64(double val) {
+  std::string long_vals = to_long_string(val);
+  return demo32(long_vals, val);
   std::string vals = to_string(val);
   return demo64(vals, val);
 }

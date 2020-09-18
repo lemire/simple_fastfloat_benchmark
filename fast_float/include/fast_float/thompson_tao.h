@@ -319,14 +319,18 @@ adjusted_mantissa compute_float(decimal &d) {
 template <typename binary>
 adjusted_mantissa parse_long_mantissa(const char *first, const char *last) {
     // We try once more to avoid the long way:
+    /*
     parsed_number_string truncated = parse_truncated_decimal(first, last);
+      printf("from %.*s read %zu %zu\n", int(last-first), first, size_t(truncated.mantissa), size_t(truncated.exponent));
 
-    auto [am, truncated_ok] = compute_float_from_truncated<binary>(pns.exponent, pns.mantissa);
+    auto [am, truncated_ok] = compute_float_from_truncated<binary>(truncated.exponent, truncated.mantissa);
     if(truncated_ok) {
+      printf("read mantissa truncated from %.*s %zu %zu\n", int(last-first), first, size_t(am.mantissa), size_t(am.power2) );
       return am;
     }
 
     // Ok. We have to work hard:
+printf("Doing the hard work \n");*/
 
     decimal d = parse_decimal(first, last);
     return compute_float<binary>(d);
