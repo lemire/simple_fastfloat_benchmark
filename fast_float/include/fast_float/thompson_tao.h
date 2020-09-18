@@ -22,6 +22,15 @@ inline void trim(decimal &h) {
   }
 }
 
+/** If you ever want to see what is going on, the following function might prove handy:
+void print(const decimal d) {
+  for(size_t i = 0; i < d.num_digits; i++) {
+    printf("%d", int(d.digits[i]));
+  }
+  printf("[%d]", d.decimal_point);
+}
+**/
+
 const uint16_t number_of_digits_decimal_left_shift_table[65] = {
     0x0000, 0x0800, 0x0801, 0x0803, 0x1006, 0x1009, 0x100D, 0x1812, 0x1817,
     0x181D, 0x2024, 0x202B, 0x2033, 0x203C, 0x2846, 0x2850, 0x285B, 0x3067,
@@ -135,7 +144,7 @@ uint64_t round(decimal &h) {
   }
   bool round_up = false;
   if (dp < h.num_digits) {
-    round_up = h.digits[dp] >= 5; // normally, we round u
+    round_up = h.digits[dp] >= 5; // normally, we round up    
     // but we may need to round to even!
     if ((h.digits[dp] == 5) && (dp + 1 == h.num_digits)) {
       round_up = h.truncated || ((dp > 0) && (1 & h.digits[dp - 1]));
@@ -299,7 +308,6 @@ adjusted_mantissa compute_float(decimal &d) {
   const int mantissa_size_in_bits = binary::mantissa_explicit_bits() + 1;
   decimal_left_shift(d, mantissa_size_in_bits);
   uint64_t mantissa = round(d);
-
   if ((mantissa >> mantissa_size_in_bits) != 0) {
     mantissa >>= 1;
     exp2++;
