@@ -162,6 +162,7 @@ parsed_number_string parse_number_string(const char *p, const char *pend, chars_
 }
 
 // This should always succeed since it follows a call to parse_number_string.
+// It assumes that there are more than 19 mantissa digits to parse.
 parsed_number_string parse_truncated_decimal(const char *&p, const char *pend)  noexcept  {
   parsed_number_string answer;
   answer.valid = true;
@@ -177,7 +178,8 @@ parsed_number_string parse_truncated_decimal(const char *&p, const char *pend)  
   while ((p != pend) && is_integer(*p)) {
     // a multiplication by 10 is cheaper than an arbitrary integer
     // multiplication
-    if(number_of_digits <= 19) {
+    if(number_of_digits < 19) {
+
       uint8_t digit = uint8_t(*p - '0');
       i = 10 * i + digit;
       number_of_digits ++;
@@ -188,18 +190,19 @@ parsed_number_string parse_truncated_decimal(const char *&p, const char *pend)  
   if ((p != pend) && (*p == '.')) {
     ++p;
     const char *first_after_period = p;
+   
     while ((p != pend) && is_integer(*p)) {
-      if(number_of_digits <= 19) {
+      if(number_of_digits < 19) {
         uint8_t digit = uint8_t(*p - '0');
         i = i * 10 + digit;
         number_of_digits ++;
+      } else if (exponent == 0) {
+        exponent = first_after_period - p;
       }
       ++p;
     }
-    exponent = first_after_period - p;
   }
 
-  
   if ((p != pend) && (('e' == *p) || ('E' == *p))) {
     int64_t exp_number = 0;            // exponential part
     ++p;

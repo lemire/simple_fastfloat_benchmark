@@ -244,7 +244,7 @@ std::pair<uint64_t, uint64_t> compute_product_truncated(int64_t q, uint64_t w) {
   if(upper_bound.high > lower_bound.low) {
     upper_bound.high++;
   }
-  return std::make_pair(upper_bound.high, upper_bound.high;
+  return std::make_pair(upper_bound.high, upper_bound.high);
 }
 
 
@@ -273,7 +273,6 @@ std::pair<adjusted_mantissa, bool> compute_float_from_truncated(int64_t q, uint6
   // We want the most significant bit of i to be 1. Shift if needed.
   int lz = leading_zeroes(w);
   w <<= lz;
-
   // The required precision is binary::mantissa_explicit_bits() + 3 because
   // 1. We need the implicit bit
   // 2. We need an extra bit for rounding purposes
@@ -286,20 +285,18 @@ std::pair<adjusted_mantissa, bool> compute_float_from_truncated(int64_t q, uint6
     // we do not have the desired precision
     return std::make_pair (answer,false);
   }
-  uint64_t upperbit = product.high >> 63;
+  uint64_t upperbit = lower >> 63;
 
-  answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
+  answer.mantissa = lower >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
   lz += int(1 ^ upperbit);
   answer.power2 = power(int(q)) - lz - binary::minimum_exponent() + 1;
-
   if (answer.power2 <= 0) { // we have a subnormal?
     answer.mantissa >>= -answer.power2 + 1;
     answer.mantissa += (answer.mantissa & 1); // round up
     answer.mantissa >>= 1;
     answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
-    return std::make_pair (answer,true);
+    return std::make_pair (answer,false);
   }
-
   answer.mantissa += (answer.mantissa & 1); // round up
   answer.mantissa >>= 1;
   if (answer.mantissa >= (uint64_t(2) << binary::mantissa_explicit_bits())) {
@@ -308,6 +305,7 @@ std::pair<adjusted_mantissa, bool> compute_float_from_truncated(int64_t q, uint6
   }
 
   answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
+
 
   if (answer.power2 >= binary::infinite_power()) { // infinity
     answer.power2 = binary::infinite_power();
