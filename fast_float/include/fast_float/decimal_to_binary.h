@@ -76,21 +76,25 @@ namespace {
 } // namespace
 
 // w * 10 ** q
+// The returned value should be a valid ieee64 number that simply need to be packed.
+// However, in some very rare cases, the computation will fail. In such cases, we 
+// return an adjusted_mantissa with a negative power of 2: the caller should recompute
+// in such cases.
 template <typename binary>
 fastfloat_really_inline
- std::pair<adjusted_mantissa,bool> compute_float(int64_t q, uint64_t w)  noexcept  {
+adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   adjusted_mantissa answer;
   if ((w == 0) || (q < -324 - 19) ){
     answer.power2 = 0;
     answer.mantissa = 0;
     // result should be zero
-    return std::make_pair(answer, true);
+    return answer;
   }
   if (q > 308) {
     // we want to get infinity:
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
-    return std::make_pair(answer, true);
+    return answer;
   } 
 
   // We want the most significant bit of i to be 1. Shift if needed.
@@ -105,7 +109,8 @@ fastfloat_really_inline
   if(product.low == 0xFFFFFFFFFFFFFFFF) {
     // In some very rare cases, this could happen, in which case we might need a more accurate
     // computation that what we can provide cheaply. This is very, very unlikely.
-    return std::make_pair(answer, false);
+    answer.power2 = -1;
+    return answer;
   }
   // The "compute_product_approximation" function can be slightly slower than a branchless approach:
   // value128 product = compute_product(q, w);
@@ -122,7 +127,7 @@ fastfloat_really_inline
     answer.mantissa += (answer.mantissa & 1); // round up
     answer.mantissa >>= 1;
     answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
-    return std::make_pair(answer, true);
+    return answer;
   }
   // usually, we round *up*, but if we fall right in between and and we have an
   // even basis, we need to round down
@@ -149,7 +154,7 @@ fastfloat_really_inline
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
   }
-  return std::make_pair(answer, true);
+  return answer;
 }
 
 } // namespace fast_float

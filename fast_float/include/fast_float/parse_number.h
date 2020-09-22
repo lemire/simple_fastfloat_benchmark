@@ -99,16 +99,9 @@ from_chars_result from_chars(const char *first, const char *last,
     if (pns.negative) { value = -value; }
     return answer;
   }
-  adjusted_mantissa am;
-  if(pns.too_many_digits) {
-    am = parse_long_mantissa<binary_format<T>>(first,last); // slow path
-  } else {
-    std::pair<adjusted_mantissa,bool> result = compute_float<binary_format<T>>(pns.exponent, pns.mantissa); // fast path
-    if(!result.second) { // slow path again
-      am = parse_long_mantissa<binary_format<T>>(first,last);
-    } else {
-      am = result.first;
-    }
+  adjusted_mantissa am = pns.too_many_digits ? parse_long_mantissa<binary_format<T>>(first,last) : compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
+  if(am.power2 < 0) {
+    am = parse_long_mantissa<binary_format<T>>(first,last);
   }
 
  // adjusted_mantissa am = pns.too_many_digits ? 
