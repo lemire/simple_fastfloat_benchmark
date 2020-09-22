@@ -5,6 +5,8 @@
 
 #define IEEE_8087
 #include "cxxopts.hpp"
+
+#include "event_counter.h"
 #include "dtoa.c"
 #include <algorithm>
 #include <charconv>
@@ -125,44 +127,91 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
 }
 
 template <class T>
-std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
+std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
-  std::chrono::high_resolution_clock::time_point t1, t2;
-  double average = 0;
-  double min_value = DBL_MAX;
+  //std::chrono::high_resolution_clock::time_point t1, t2;
+  std::vector<event_count> aggregate;
+  event_collector collector;
+  //double average = 0;
+  //double min_value = DBL_MAX;
   for (size_t i = 0; i < repeat; i++) {
-    t1 = std::chrono::high_resolution_clock::now();
+    collector.start();
+    //t1 = std::chrono::high_resolution_clock::now();
     double ts = function(lines);
     if (ts == 0) {
       printf("bug\n");
     }
-    t2 = std::chrono::high_resolution_clock::now();
-    double dif =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-    average += dif;
-    min_value = min_value < dif ? min_value : dif;
+    aggregate.push_back(collector.end());
+   // t2 = std::chrono::high_resolution_clock::now();
+   // double dif =
+     //   std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+   // average += dif;
+   // min_value = min_value < dif ? min_value : dif;
   }
-  average /= repeat;
-  return std::make_pair(min_value, average);
+//  average /= repeat;
+  return aggregate;//std::make_pair(min_value, average);
+}
+
+void pretty_print(double volume, std::string name, std::vector<event_count> events) {
+  double volumeMB = volume / (1024. * 1024.);
+  double average_ns{0};
+  double min_ns{DBL_MAX};
+  double cycles_min{DBL_MAX};
+  double instructions_min{DBL_MAX};
+  double branch_misses_min{DBL_MAX};
+  double cycles_avg{DBL_MAX};
+  double instructions_avg{DBL_MAX};
+  double branch_misses_avg{DBL_MAX};
+  for(event_count e : events) {
+    double ns = e.elapsed_ns();
+    average_ns += ns;
+    min_ns = min_ns < ns ? min_ns : ns;
+
+    double cycles = e.cycles();
+    cycles_avg += cycles;
+    cycles_min = cycles_min < cycles ? cycles_min : cycles;
+
+    double instructions = e.instructions();
+    instructions_avg += instructions;
+    instructions_min = instructions_min < instructions ? instructions_min : instructions;
+
+    double branch_misses = e.branch_misses();
+    branch_misses_avg += branch_misses;
+    branch_misses_min = branch_misses_min < branch_misses ? branch_misses_min : branch_misses;
+  }
+  cycles_avg /= events.size();
+  instructions_avg /= events.size();
+  branch_misses_avg /= events.size();
+  average_ns /= events.size();
+  printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
+           volumeMB * 1000000000 / min_ns,
+           (average_ns - min_ns) * 100.0 / average_ns);
+  if(instructions_min > 0) {
+    printf(" %8.2f i/B (+/- %.1f %%) ", 
+           instructions_min / volume ,
+           (instructions_avg - instructions_min) * 100.0 / instructions_avg);
+    printf(" %8.2f bm/B (+/- %.1f %%) ", 
+           branch_misses_min / volume ,
+           (branch_misses_avg - branch_misses_min) * 100.0 / branch_misses_avg);
+
+    printf(" %8.2f c/B (+/- %.1f %%) ", 
+           cycles_min / volume ,
+           (cycles_avg - cycles_min) * 100.0 / cycles_avg);
+  }
+  printf("\n");
+
 }
 
 void process(std::vector<std::string> &lines, size_t volume) {
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
-  auto pretty_print = [volumeMB](std::string name,
-                                 std::pair<double, double> result) {
-    printf("%-40s: %8.2f MB/s (+/- %.1f %%)\n", name.data(),
-           volumeMB * 1000000000 / result.first,
-           (result.second - result.first) * 100.0 / result.second);
-  };
-
-  pretty_print("netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print("strtod", time_it_ns(lines, findmax_strtod, repeat));
-  pretty_print("abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
-  pretty_print("fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
+  pretty_print(volume, "netlib", time_it_ns(lines, findmax_netlib, repeat));
+  pretty_print(volume, "strtod", time_it_ns(lines, findmax_strtod, repeat));
+  pretty_print(volume, "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
+  pretty_print(volume, "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
-  pretty_print("from_chars", time_it_ns(lines, findmax_from_chars, repeat));
+  pretty_print(volume, "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
 }
 
