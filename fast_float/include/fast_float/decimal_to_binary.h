@@ -3,8 +3,6 @@
 
 #include "float_common.h"
 #include "fast_table.h"
-#include "tables_negative.h"
-#include "tables_positive.h"
 #include <cfloat>
 #include <cinttypes>
 #include <cmath>
@@ -19,76 +17,6 @@ namespace fast_float {
 
 
 
-// will compute w * 5**q
-value128 complete_long_product(int64_t q, uint64_t w) {
-  uint64_t fullanswer[14];
-
-  bool positive_power = (q >= 0);
-  const uint64_t *p5 =
-      positive_power ? powers_of_five : negative_powers_of_five;
-  typedef uint16_t pair_of_uint16[2];
-  const pair_of_uint16 *index5 = positive_power
-                                     ? index_into_powers_of_five
-                                     : negative_index_into_powers_of_five;
-  q = positive_power ? q : -q;
-  value128 firstproduct = full_multiplication(w, p5[q]);
-  // rewrite to avoid the stores
-  fullanswer[0] = firstproduct.high;
-  fullanswer[1] = firstproduct.low;
-
-  int level = 0;
-  if (firstproduct.low + w - 1 < firstproduct.low) {
-    int smallest_power;
-    level++; // start at level one, meaning the second word
-    // here we must have that q<309.
-    for (; q >= (smallest_power = index5[level][0]); level++) {
-      const int64_t idx = index5[level][1] + (q - smallest_power);
-      value128 product = full_multiplication(w, p5[idx]);
-      fullanswer[level + 1] = product.low;
-      fullanswer[level] += product.high;      // can overflow
-      if (product.high > fullanswer[level]) { // we have an overflow
-        int tmpidx = level - 1;
-        fullanswer[tmpidx]++;
-        while (fullanswer[tmpidx] ==
-               0) { // if we have an overflow, we need to go downw further
-          tmpidx--;
-          fullanswer[tmpidx]++;
-        }
-      }
-      // we only need to go further if we have all 1s.
-      if (fullanswer[level] != 0xFFFFFFFFFFFFFFFF) {
-        break;
-      }
-    }
-  }
-  value128 answer(fullanswer[1], fullanswer[0]);
-  return answer;
-}
-
-
-
-// will compute w * 5**q
-fastfloat_really_inline
-value128 compute_product(int64_t q, uint64_t w) {
-  const int index = 2 * int(q - smallest_power_of_five);
-  value128 firstproduct = full_multiplication(w, power_of_five_128[index]);
-  // regarding the second product, we only need secondproduct.high, but our expectation is that the compiler will optimize this extra work away if needed.
-  value128 secondproduct = full_multiplication(w, power_of_five_128[index + 1]);
-  firstproduct.low += secondproduct.high;
-  if(secondproduct.high > firstproduct.low) {
-    firstproduct.high++;
-  }
-  // At this point, we might need to add at most one to firstproduct, but this
-  // can only change the value of firstproduct.high if firstproduct.low is maximal.
-  if(firstproduct.low  == 0xFFFFFFFFFFFFFFFF) {
-    printf("FUCKKKKKK \n");
-    // This is very unlikely, but if so, we need to do much more work!
-    return complete_long_product(q,w);
-  }
-  return firstproduct;
-}
-
-
 // This will compute or rather approximate w * 5**q and return a pair of 64-bit words approximating
 // the results, with the "high" part corresponding to the most significant bits and the
 // low part corresponding to the least significant bits.
@@ -97,6 +25,8 @@ value128 compute_product(int64_t q, uint64_t w) {
 //
 // Otherwise, we seek an answer that is exact but for only for the 
 // most significant  bit_precision bits.
+//
+// Caller should be concerned if firstproduct.low  == 0xFFFFFFFFFFFFFFFF
 template <int bit_precision>
 fastfloat_really_inline
 value128 compute_product_approximation(int64_t q, uint64_t w) {
@@ -114,14 +44,18 @@ value128 compute_product_approximation(int64_t q, uint64_t w) {
     value128 secondproduct = full_multiplication(w, power_of_five_128[index + 1]);
     firstproduct.low += secondproduct.high;
     if(secondproduct.high > firstproduct.low) {
-    firstproduct.high++;
+      firstproduct.high++;
     }
+    //
     // At this point, we might need to add at most one to firstproduct, but this
     // can only change the value of firstproduct.high if firstproduct.low is maximal.
-    if(firstproduct.low  == 0xFFFFFFFFFFFFFFFF) {
-      // This is very unlikely, but if so, we need to do much more work!
-      return complete_long_product(q,w);
-    }
+    // if(firstproduct.low  == 0xFFFFFFFFFFFFFFFF) {
+    //  // This is very unlikely, but if so, we need to do much more work!
+    //  return complete_long_product(q,w);
+    //}
+    // instead of doing the full computation, it is best to bail out and fall back on 
+    // a slow path. (This case is very unlikely in practice.)
+    //
   }
   return firstproduct;
 }
@@ -136,32 +70,28 @@ namespace {
  *   p = log(5**q)/log(2) = q * log(5)/log(2)
  *
  */
-fastfloat_really_inline unsigned int power(int q)  noexcept  {
-  return (((152170 + 65536) * q) >> 16) + 63;
-}
+  fastfloat_really_inline unsigned int power(int q)  noexcept  {
+    return (((152170 + 65536) * q) >> 16) + 63;
+  }
 } // namespace
 
 // w * 10 ** q
 template <typename binary>
 fastfloat_really_inline
- adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
+ std::pair<adjusted_mantissa,bool> compute_float(int64_t q, uint64_t w)  noexcept  {
   adjusted_mantissa answer;
-  if (w == 0) {
+  if ((w == 0) || (q < -324 - 19) ){
     answer.power2 = 0;
     answer.mantissa = 0;
-    return answer;
+    // result should be zero
+    return std::make_pair(answer, true);
   }
   if (q > 308) {
     // we want to get infinity:
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
-    return answer;
-  } else if (q < -324 - 19) {
-    // should be zero
-    answer.power2 = 0;
-    answer.mantissa = 0;
-    return answer;
-  }
+    return std::make_pair(answer, true);
+  } 
 
   // We want the most significant bit of i to be 1. Shift if needed.
   int lz = leading_zeroes(w);
@@ -172,6 +102,11 @@ fastfloat_really_inline
   // 2. We need an extra bit for rounding purposes
   // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a shift)
   value128 product = compute_product_approximation<binary::mantissa_explicit_bits() + 3>(q, w);
+  if(product.low == 0xFFFFFFFFFFFFFFFF) {
+    // In some very rare cases, this could happen, in which case we might need a more accurate
+    // computation that what we can provide cheaply. This is very, very unlikely.
+    return std::make_pair(answer, false);
+  }
   // The "compute_product_approximation" function can be slightly slower than a branchless approach:
   // value128 product = compute_product(q, w);
   // but in practice, we can win big with the compute_product_approximation if its additional branch
@@ -187,7 +122,7 @@ fastfloat_really_inline
     answer.mantissa += (answer.mantissa & 1); // round up
     answer.mantissa >>= 1;
     answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
-    return answer;
+    return std::make_pair(answer, true);
   }
   // usually, we round *up*, but if we fall right in between and and we have an
   // even basis, we need to round down
@@ -214,7 +149,7 @@ fastfloat_really_inline
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
   }
-  return answer;
+  return std::make_pair(answer, true);
 }
 
 } // namespace fast_float
