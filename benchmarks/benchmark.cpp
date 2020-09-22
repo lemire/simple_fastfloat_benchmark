@@ -159,9 +159,9 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   double cycles_min{DBL_MAX};
   double instructions_min{DBL_MAX};
   double branch_misses_min{DBL_MAX};
-  double cycles_avg{DBL_MAX};
-  double instructions_avg{DBL_MAX};
-  double branch_misses_avg{DBL_MAX};
+  double cycles_avg{0};
+  double instructions_avg{0};
+  double branch_misses_avg{0};
   for(event_count e : events) {
     double ns = e.elapsed_ns();
     average_ns += ns;
