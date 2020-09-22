@@ -57,3 +57,6 @@ C++17 features as part of older compilers, it is not an objective of this librar
 
 The `from_chars` is meant to be locale-independent. Thus it is not an objective of this library to support
 locale-sensitive parsing.
+
+The performance is optimized for when there are 19 or fewer significant digits. In practice, there should
+never be more than 17 digits since it is enough to identify exactly all possible 64-bit numbers (double).

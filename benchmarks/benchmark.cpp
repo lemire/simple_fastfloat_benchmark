@@ -4,9 +4,10 @@
 #include "fast_float/fast_float.h"
 
 #define IEEE_8087
+#include "cxxopts.hpp"
 #include "dtoa.c"
-
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <climits>
 #include <cmath>
@@ -18,16 +19,19 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <random>
 #include <sstream>
 #include <stdio.h>
 #include <vector>
-#include <charconv>
-#include <random>
 
 #include <locale.h>
 
+namespace internal {
+  char *to_chars(char *first, const char *last, double value);
+}
+
 /**
- * Determining whether we should import xlocale.h or not is 
+ * Determining whether we should import xlocale.h or not is
  * a bit of a nightmare.
  */
 #ifdef __GLIBC__
@@ -35,8 +39,9 @@
 #if !((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ > 25)))
 #include <xlocale.h> // old glibc
 #endif
-#else // not glibc
-#ifndef _MSC_VER // assume that everything that is not GLIBC and not Visual Studio needs xlocale.h
+#else            // not glibc
+#ifndef _MSC_VER // assume that everything that is not GLIBC and not Visual
+                 // Studio needs xlocale.h
 #include <xlocale.h>
 #endif
 #endif
@@ -55,7 +60,6 @@ double findmax_netlib(std::vector<std::string> &s) {
   return answer;
 }
 
-
 double findmax_strtod(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
@@ -63,10 +67,10 @@ double findmax_strtod(std::vector<std::string> &s) {
     char *pr = (char *)st.data();
 #ifdef _WIN32
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
-    x = _strtod_l(st.data(), &pr,  c_locale);
+    x = _strtod_l(st.data(), &pr, c_locale);
 #else
     static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
-    x = strtod_l(st.data(), &pr,  c_locale);
+    x = strtod_l(st.data(), &pr, c_locale);
 #endif
     if (pr == st.data()) {
       throw std::runtime_error("bug in findmax_strtod");
@@ -152,17 +156,17 @@ void process(std::vector<std::string> &lines, size_t volume) {
            volumeMB * 1000000000 / result.first,
            (result.second - result.first) * 100.0 / result.second);
   };
-  
+
   pretty_print("netlib", time_it_ns(lines, findmax_netlib, repeat));
   pretty_print("strtod", time_it_ns(lines, findmax_strtod, repeat));
   pretty_print("abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print("fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print("from_chars", time_it_ns(lines, findmax_from_chars, repeat));
-#endif 
+#endif
 }
 
-void fileload(char *filename) {
+void fileload(const char *filename) {
   std::ifstream inputfile(filename);
   if (!inputfile) {
     std::cerr << "can't open " << filename << std::endl;
@@ -191,12 +195,22 @@ template <typename T> std::string accurate_to_string(T d) {
   std::string answer;
   answer.resize(64);
   auto written = std::snprintf(answer.data(), 64, "%.*e",
-                              std::numeric_limits<T>::max_digits10 - 1, d);
+                               std::numeric_limits<T>::max_digits10 - 1, d);
+  if(written > 24) { abort(); }
   answer.resize(written);
   return answer;
 }
+template <typename T> std::string accurate_to_string_concise(T d) {
+  std::string answer;
+  answer.resize(64);
+  auto result = internal::to_chars(answer.data(), answer.data() + 64, d);
+  if(result == answer.data()) { abort(); }
+  if(result - answer.data() > 24) { abort(); }
+  answer.resize(result - answer.data());
+  return answer;
+}
 
-void demo(size_t howmany) {
+void parse_random_numbers(size_t howmany, bool concise) {
   std::cout << "# parsing random integers in the range [0,1)" << std::endl;
   std::vector<std::string> lines;
   std::random_device rd;
@@ -205,21 +219,39 @@ void demo(size_t howmany) {
   lines.reserve(howmany); // let us reserve plenty of memory.
   size_t volume = 0;
   for (size_t i = 0; i < howmany; i++) {
-    double x =  dis(gen);
-    std::string line = accurate_to_string(x);
+    double x = dis(gen);
+    std::string line = concise ? accurate_to_string_concise(x) : accurate_to_string(x);
     volume += line.size();
     lines.push_back(line);
   }
   process(lines, volume);
 }
 
+cxxopts::Options
+    options("benchmark",
+            "Compute the parsing speed of different number parsers.");
+
 int main(int argc, char **argv) {
-  if (argc == 1) {
-    demo(100 * 1000);
-    std::cout << "# You can also provide a filename: it should contain one "
-                 "string per line corresponding to a number"
-              << std::endl;
-  } else {
-    fileload(argv[1]);
+  try {
+    options.add_options()
+        ("c,concise", "Concise random floating-point strings (if not 17 digits are used)")
+        ("f,file", "File name.", cxxopts::value<std::string>()->default_value(""))
+        ("h,help","Print usage.");
+    auto result = options.parse(argc, argv);
+    if(result["help"].as<bool>()) {
+      std::cout << options.help() << std::endl;
+      return EXIT_SUCCESS;
+    }
+    if (result["file"].as<std::string>().empty()) {
+      parse_random_numbers(100 * 1000, result["concise"].as<bool>());
+      std::cout << "# You can also provide a filename: it should contain one "
+                   "string per line corresponding to a number"
+                << std::endl;
+    } else {
+      fileload(result["file"].as<std::string>().c_str());
+    }
+  } catch (const cxxopts::OptionException &e) {
+    std::cout << "error parsing options: " << e.what() << std::endl;
+    return EXIT_FAILURE;
   }
 }

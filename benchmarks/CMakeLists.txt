@@ -1,4 +1,4 @@
-add_executable(benchmark benchmark.cpp)
+add_executable(benchmark benchmark.cpp to_chars.cpp)
 
 
 target_link_libraries(benchmark PUBLIC absl::strings )
