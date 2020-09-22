@@ -152,7 +152,7 @@ std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
   return aggregate;//std::make_pair(min_value, average);
 }
 
-void pretty_print(double volume, std::string name, std::vector<event_count> events) {
+void pretty_print(double volume, size_t number_of_floats, std::string name, std::vector<event_count> events) {
   double volumeMB = volume / (1024. * 1024.);
   double average_ns{0};
   double min_ns{DBL_MAX};
@@ -183,19 +183,23 @@ void pretty_print(double volume, std::string name, std::vector<event_count> even
   instructions_avg /= events.size();
   branch_misses_avg /= events.size();
   average_ns /= events.size();
+  std::cout << cycles_avg << " " << cycles_avg << std::endl;
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / min_ns,
            (average_ns - min_ns) * 100.0 / average_ns);
   if(instructions_min > 0) {
-    printf(" %8.2f i/B (+/- %.1f %%) ", 
-           instructions_min / volume ,
+    printf(" %8.2f i/B %8.2f i/f (+/- %.1f %%) ", 
+           instructions_min / volume,
+           instructions_min / number_of_floats, 
            (instructions_avg - instructions_min) * 100.0 / instructions_avg);
-    printf(" %8.2f bm/B (+/- %.1f %%) ", 
-           branch_misses_min / volume ,
+    printf(" %8.2f bm/B %8.2f bm/f (+/- %.1f %%) ", 
+           branch_misses_min / volume,
+           branch_misses_min / number_of_floats, 
            (branch_misses_avg - branch_misses_min) * 100.0 / branch_misses_avg);
 
-    printf(" %8.2f c/B (+/- %.1f %%) ", 
-           cycles_min / volume ,
+    printf(" %8.2f c/B %8.2f c/f (+/- %.1f %%) ", 
+           cycles_min / volume,
+           cycles_min / number_of_floats, 
            (cycles_avg - cycles_min) * 100.0 / cycles_avg);
   }
   printf("\n");
@@ -206,12 +210,12 @@ void process(std::vector<std::string> &lines, size_t volume) {
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, "netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print(volume, "strtod", time_it_ns(lines, findmax_strtod, repeat));
-  pretty_print(volume, "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
-  pretty_print(volume, "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
+  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
+  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
+  pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
+  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
-  pretty_print(volume, "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
+  pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
 }
 
