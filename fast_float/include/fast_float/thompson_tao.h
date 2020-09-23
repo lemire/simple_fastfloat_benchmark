@@ -27,13 +27,14 @@ inline void trim(decimal &h) {
 }
 
 /** If you ever want to see what is going on, the following function might prove handy:
+ * **/
 void print(const decimal d) {
   for(size_t i = 0; i < d.num_digits; i++) {
     printf("%d", int(d.digits[i]));
   }
   printf("[%d]", d.decimal_point);
 }
-**/
+
 
 const uint16_t number_of_digits_decimal_left_shift_table[65] = {
     0x0000, 0x0800, 0x0801, 0x0803, 0x1006, 0x1009, 0x100D, 0x1812, 0x1817,

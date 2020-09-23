@@ -265,6 +265,13 @@ decimal parse_decimal(const char *&p, const char *pend)  noexcept  {
   if ((p != pend) && (*p == '.')) {
     ++p;
     first_after_period = p;
+    // if we have not yet encountered a zero, we have to skip it as well
+    if(answer.num_digits == 0) {
+      // skip zeros
+      while ((p != pend) && (*p == '0')) {
+       ++p;
+      }
+    }
     while ((p != pend) && is_integer(*p)) {
       if (answer.num_digits + 1 < max_digits) {
         answer.digits[answer.num_digits++] = uint8_t(*p - '0');
