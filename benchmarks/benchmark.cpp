@@ -129,27 +129,17 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
 template <class T>
 std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
-  //std::chrono::high_resolution_clock::time_point t1, t2;
   std::vector<event_count> aggregate;
   event_collector collector;
-  //double average = 0;
-  //double min_value = DBL_MAX;
   for (size_t i = 0; i < repeat; i++) {
     collector.start();
-    //t1 = std::chrono::high_resolution_clock::now();
     double ts = function(lines);
     if (ts == 0) {
       printf("bug\n");
     }
     aggregate.push_back(collector.end());
-   // t2 = std::chrono::high_resolution_clock::now();
-   // double dif =
-     //   std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-   // average += dif;
-   // min_value = min_value < dif ? min_value : dif;
-  }
-//  average /= repeat;
-  return aggregate;//std::make_pair(min_value, average);
+ }
+  return aggregate;
 }
 
 void pretty_print(double volume, size_t number_of_floats, std::string name, std::vector<event_count> events) {
@@ -186,6 +176,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / min_ns,
            (average_ns - min_ns) * 100.0 / average_ns);
+  printf("%8.2f Mint/s  ", 
+           number_of_floats * 1000 / min_ns);
   if(instructions_min > 0) {
     printf(" %8.2f i/B %8.2f i/f (+/- %.1f %%) ", 
            instructions_min / volume,
