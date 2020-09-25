@@ -103,10 +103,6 @@ from_chars_result from_chars(const char *first, const char *last,
   if(am.power2 < 0) {
     am = parse_long_mantissa<binary_format<T>>(first,last);
   }
-
- // adjusted_mantissa am = pns.too_many_digits ? 
- //   parse_long_mantissa<binary_format<T>>(first,last) 
-  //  : compute_float<binary_format<T>>(pns.exponent, pns.mantissa);
   uint64_t word = am.mantissa;
   word |= uint64_t(am.power2) << binary_format<T>::mantissa_explicit_bits();
   word = pns.negative 

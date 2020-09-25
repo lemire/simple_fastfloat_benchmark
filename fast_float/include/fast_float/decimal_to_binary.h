@@ -18,15 +18,9 @@ namespace fast_float {
 
 
 // This will compute or rather approximate w * 5**q and return a pair of 64-bit words approximating
-// the results, with the "high" part corresponding to the most significant bits and the
+// the result, with the "high" part corresponding to the most significant bits and the
 // low part corresponding to the least significant bits.
 // 
-// For small values of q, e.g., q in [0,27], the answer is always exact.
-//
-// Otherwise, we seek an answer that is exact but for only for the 
-// most significant  bit_precision bits.
-//
-// Caller should be concerned if firstproduct.low  == 0xFFFFFFFFFFFFFFFF
 template <int bit_precision>
 fastfloat_really_inline
 value128 compute_product_approximation(int64_t q, uint64_t w) {
@@ -39,23 +33,13 @@ value128 compute_product_approximation(int64_t q, uint64_t w) {
   constexpr uint64_t precision_mask = (bit_precision < 64) ? 
                (uint64_t(0xFFFFFFFFFFFFFFFF) >> bit_precision) 
                : uint64_t(0xFFFFFFFFFFFFFFFF);
-  if((firstproduct.high & precision_mask) == precision_mask) {
+  if((firstproduct.high & precision_mask) == precision_mask) { // could further guard with  (lower + w < lower)
     // regarding the second product, we only need secondproduct.high, but our expectation is that the compiler will optimize this extra work away if needed.
     value128 secondproduct = full_multiplication(w, power_of_five_128[index + 1]);
     firstproduct.low += secondproduct.high;
     if(secondproduct.high > firstproduct.low) {
       firstproduct.high++;
     }
-    //
-    // At this point, we might need to add at most one to firstproduct, but this
-    // can only change the value of firstproduct.high if firstproduct.low is maximal.
-    // if(firstproduct.low  == 0xFFFFFFFFFFFFFFFF) {
-    //  // This is very unlikely, but if so, we need to do much more work!
-    //  return complete_long_product(q,w);
-    //}
-    // instead of doing the full computation, it is best to bail out and fall back on 
-    // a slow path. (This case is very unlikely in practice.)
-    //
   }
   return firstproduct;
 }
@@ -106,7 +90,7 @@ adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   // 2. We need an extra bit for rounding purposes
   // 3. We might lose a bit due to the "upperbit" routine (result too small, requiring a shift)
   value128 product = compute_product_approximation<binary::mantissa_explicit_bits() + 3>(q, w);
-  if(product.low == 0xFFFFFFFFFFFFFFFF) {
+  if(product.low == 0xFFFFFFFFFFFFFFFF) { //  could guard it further
     // In some very rare cases, this could happen, in which case we might need a more accurate
     // computation that what we can provide cheaply. This is very, very unlikely.
     answer.power2 = -1;
@@ -131,11 +115,12 @@ adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   }
   // usually, we round *up*, but if we fall right in between and and we have an
   // even basis, we need to round down
-  if ((product.low == 0) && (q >= 0) && (q <= binary::max_power_for_even()) &&   
-      ((answer.mantissa & 3) == 1)) { // we may fall between two floats!
+  // We are only concerned with the cases where 5**q fits in single 64-bit word.
+  if ((product.low == 0) &&  (q >= -27) && (q <= 27) && 
+      ((answer.mantissa & 3) == 1) ) { // we may fall between two floats!
     // To be in-between two floats we need that in doing
     //   answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
-    // ... we dropped out only zeroes. But if this happened, then we can go back!!! 
+    // ... we dropped out only zeroes. But if this happened, then we can go back!!!
     if((answer.mantissa  << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==  product.high) {
       answer.mantissa ^= 1;             // flip it so that we do not round up
     }

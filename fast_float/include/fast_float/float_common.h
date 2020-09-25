@@ -138,7 +138,6 @@ struct binary_format {
   static constexpr int mantissa_explicit_bits();
   static constexpr int minimum_exponent();
   static constexpr int infinite_power();
-  static constexpr int max_power_for_even();
   static constexpr int sign_index();
   static constexpr int min_exponent_fast_path();
   static constexpr int max_exponent_fast_path();
@@ -176,15 +175,6 @@ constexpr int binary_format<double>::infinite_power() {
 template <>
 constexpr int binary_format<float>::infinite_power() { 
   return 0xFF;
-}
-
-template <>
-constexpr int binary_format<double>::max_power_for_even() {
-  return 23;
-}
-template <>
-constexpr int binary_format<float>::max_power_for_even() { 
-  return 10;
 }
 
 template <>
