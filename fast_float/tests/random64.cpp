@@ -66,6 +66,9 @@ void random_values(size_t N) {
         }
       } else if (result_value != v) {
         std::cerr << "no match ? " << buffer << std::endl;
+        std::cout << "started with " << std::hexfloat << v << std::endl;
+        std::cout << "got back " << std::hexfloat << result_value << std::endl; 
+        std::cout << std::dec;
         errors++;
         if (errors > 10) {
           abort();

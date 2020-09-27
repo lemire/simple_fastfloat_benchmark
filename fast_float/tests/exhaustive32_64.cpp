@@ -38,6 +38,9 @@ void all_32bit_values() {
         }
       } else if (result_value != v) {
         std::cerr << "no match ? " << buffer << std::endl;
+        std::cout << "started with " << std::hexfloat << v << std::endl;
+        std::cout << "got back " << std::hexfloat << result_value << std::endl; 
+        std::cout << std::dec;
         abort();
       }
     }

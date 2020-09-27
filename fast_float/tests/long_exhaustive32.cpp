@@ -37,6 +37,9 @@ void allvalues() {
         }
       } else if (result_value != v) {
         std::cerr << "no match ? " << buffer << " got " <<  result_value << " expected " << v << std::endl;
+        std::cout << "started with " << std::hexfloat << v << std::endl;
+        std::cout << "got back " << std::hexfloat << result_value << std::endl; 
+        std::cout << std::dec;
         abort();
       }
     }

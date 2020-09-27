@@ -44,7 +44,6 @@ void random_values(size_t N) {
     uint64_t word = lehmer64();
     double v;
     memcpy(&v, &word, sizeof(v));
-    // if (!std::isnormal(v))
     {
       const char *string_end = to_string(v, buffer);
       double result_value;
@@ -65,7 +64,10 @@ void random_values(size_t N) {
           }
         }
       } else if (result_value != v) {
-        std::cerr << "no match ? " << buffer << std::endl;
+        std::cerr << "no match ? '" << buffer << "'" << std::endl;
+        std::cout << "started with " << std::hexfloat << v << std::endl;
+        std::cout << "got back " << std::hexfloat << result_value << std::endl; 
+        std::cout << std::dec;
         errors++;
         if (errors > 10) {
           abort();
