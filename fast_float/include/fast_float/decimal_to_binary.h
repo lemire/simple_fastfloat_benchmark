@@ -107,6 +107,12 @@ adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   answer.power2 = power(int(q)) - lz - binary::minimum_exponent() + 1;
 
   if (answer.power2 <= 0) { // we have a subnormal?
+    if(-answer.power2 + 1 >= 64) {
+      answer.power2 = 0;
+      answer.mantissa = 0;
+      // result should be zero
+      return answer;
+    } 
     answer.mantissa >>= -answer.power2 + 1;
     answer.mantissa += (answer.mantissa & 1); // round up
     answer.mantissa >>= 1;
@@ -134,7 +140,6 @@ adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   }
 
   answer.mantissa &= ~(uint64_t(1) << binary::mantissa_explicit_bits());
-
   if (answer.power2 >= binary::infinite_power()) { // infinity
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
