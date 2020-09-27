@@ -313,6 +313,11 @@ adjusted_mantissa compute_float(decimal &d) {
   const int mantissa_size_in_bits = binary::mantissa_explicit_bits() + 1;
   decimal_left_shift(d, mantissa_size_in_bits);
   uint64_t mantissa = round(d);
+  if(mantissa > (uint64_t(2) << binary::mantissa_explicit_bits())) {
+    decimal_right_shift(d, 1);
+    exp2 += 1;
+    mantissa = round(d);
+  }
   if ((mantissa >> mantissa_size_in_bits) != 0) {
     mantissa >>= 1;
     exp2++;
