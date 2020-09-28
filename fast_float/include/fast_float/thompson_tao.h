@@ -278,13 +278,14 @@ adjusted_mantissa compute_float(decimal &d) {
     }
     exp2 += int32_t(shift);
   }
+  // We shift left toward [1/2 ... 1].
   while (d.decimal_point <= 0) {
     uint32_t shift;
     if (d.decimal_point == 0) {
       if (d.digits[0] >= 5) {
         break;
       }
-      shift = 1;
+      shift = (d.digits[0] < 2) ? 2 : 1;
     } else {
       uint32_t n = uint32_t(-d.decimal_point);
       shift = (n < num_powers) ? powers[n] : max_shift;
@@ -319,7 +320,8 @@ adjusted_mantissa compute_float(decimal &d) {
   decimal_left_shift(d, mantissa_size_in_bits);
 
   uint64_t mantissa = round(d);
-  if(mantissa > (uint64_t(1) << mantissa_size_in_bits)) {
+
+  if(mantissa >= (uint64_t(1) << mantissa_size_in_bits)) {
     decimal_right_shift(d, 1);
     exp2 += 1;
     mantissa = round(d);
