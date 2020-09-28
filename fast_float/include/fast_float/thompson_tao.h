@@ -40,7 +40,12 @@ void print(const decimal d, int32_t exp2 = 0) {
 }
 
 
-const uint16_t number_of_digits_decimal_left_shift_table[65] = {
+
+
+
+uint32_t number_of_digits_decimal_left_shift(decimal &h, uint32_t shift) {
+  shift &= 63;
+  const static uint16_t number_of_digits_decimal_left_shift_table[65] = {
     0x0000, 0x0800, 0x0801, 0x0803, 0x1006, 0x1009, 0x100D, 0x1812, 0x1817,
     0x181D, 0x2024, 0x202B, 0x2033, 0x203C, 0x2846, 0x2850, 0x285B, 0x3067,
     0x3073, 0x3080, 0x388E, 0x389C, 0x38AB, 0x38BB, 0x40CC, 0x40DD, 0x40EF,
@@ -49,9 +54,13 @@ const uint16_t number_of_digits_decimal_left_shift_table[65] = {
     0x72C9, 0x72E9, 0x7B0A, 0x7B2B, 0x7B4D, 0x8370, 0x8393, 0x83B7, 0x83DC,
     0x8C02, 0x8C28, 0x8C4F, 0x9477, 0x949F, 0x94C8, 0x9CF2, 0x051C, 0x051C,
     0x051C, 0x051C,
-};
-
-static const uint8_t
+  };
+  uint32_t x_a = number_of_digits_decimal_left_shift_table[shift];
+  uint32_t x_b = number_of_digits_decimal_left_shift_table[shift + 1];
+  uint32_t num_new_digits = x_a >> 11;
+  uint32_t pow5_a = 0x7FF & x_a;
+  uint32_t pow5_b = 0x7FF & x_b;
+  const static uint8_t
     number_of_digits_decimal_left_shift_table_powers_of_5[0x051C] = {
         5, 2, 5, 1, 2, 5, 6, 2, 5, 3, 1, 2, 5, 1, 5, 6, 2, 5, 7, 8, 1, 2, 5, 3,
         9, 0, 6, 2, 5, 1, 9, 5, 3, 1, 2, 5, 9, 7, 6, 5, 6, 2, 5, 4, 8, 8, 2, 8,
@@ -108,17 +117,7 @@ static const uint8_t
         4, 4, 8, 1, 3, 9, 1, 9, 0, 6, 7, 3, 8, 2, 8, 1, 2, 5, 8, 6, 7, 3, 6, 1,
         7, 3, 7, 9, 8, 8, 4, 0, 3, 5, 4, 7, 2, 0, 5, 9, 6, 2, 2, 4, 0, 6, 9, 5,
         9, 5, 3, 3, 6, 9, 1, 4, 0, 6, 2, 5,
-};
-
-uint32_t number_of_digits_decimal_left_shift(decimal &h, uint32_t shift) {
-  shift &= 63;
-
-  uint32_t x_a = number_of_digits_decimal_left_shift_table[shift];
-  uint32_t x_b = number_of_digits_decimal_left_shift_table[shift + 1];
-  uint32_t num_new_digits = x_a >> 11;
-  uint32_t pow5_a = 0x7FF & x_a;
-  uint32_t pow5_b = 0x7FF & x_b;
-
+  };
   const uint8_t *pow5 =
       &number_of_digits_decimal_left_shift_table_powers_of_5[pow5_a];
   uint32_t i = 0;
@@ -299,7 +298,7 @@ adjusted_mantissa compute_float(decimal &d) {
     }
     exp2 -= int32_t(shift);
   }
-  // We are in the range [1/2 ... 1] but the binary format uses [1 ... 2].
+  // We are now in the range [1/2 ... 1] but the binary format uses [1 ... 2].
   exp2--;
   constexpr int32_t minimum_exponent = binary::minimum_exponent();
   while ((minimum_exponent + 1) > exp2) {
@@ -320,7 +319,8 @@ adjusted_mantissa compute_float(decimal &d) {
   decimal_left_shift(d, mantissa_size_in_bits);
 
   uint64_t mantissa = round(d);
-
+  // It is possible that we have an overflow, in which case we need
+  // to shift back.
   if(mantissa >= (uint64_t(1) << mantissa_size_in_bits)) {
     decimal_right_shift(d, 1);
     exp2 += 1;
