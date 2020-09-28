@@ -52,8 +52,9 @@ bool basic_test_32bit(std::string vals, float val) {
       return false;
     }
   } else if (result_value != val) {
-    std::cerr << "I got " << std::setprecision(15) << result_value << " but I was expecting " << val
+    std::cerr << "I got " << std::hexfloat << result_value << " but I was expecting " << val
               << std::endl;
+    std::cerr << std::dec;
     uint32_t word;
     memcpy(&word, &result_value, sizeof(word));
     std::cout << "got mantissa = " << (word & ((1<<23)-1)) << std::endl;
@@ -88,8 +89,9 @@ bool basic_test_64bit(std::string vals, double val) {
       return false;
     }
   } else if (result_value != val) {
-    std::cerr << "I got " << std::setprecision(15) << result_value << " but I was expecting " << val
+    std::cerr << "I got " << std::hexfloat << result_value << " but I was expecting " << val
               << std::endl;
+    std::cerr << std::dec;
     std::cerr << "string: " << vals << std::endl;
     return false;
   }
@@ -108,6 +110,7 @@ int main() {
 
 
   std::cout << "======= 32 bits " << std::endl;
+  Assert(basic_test_32bit("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679", 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679));
   Assert(basic_test_32bit("2.3509887016445750159374730744444913556373311135441750430175034126e-38", 2.3509887016445750159374730744444913556373311135441750430175034126e-38f));
   Assert(basic_test_32bit("+1", 1));
   Assert(basic_test_32bit("2e3000", std::numeric_limits<float>::infinity()));

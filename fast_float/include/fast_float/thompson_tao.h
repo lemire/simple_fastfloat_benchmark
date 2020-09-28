@@ -6,8 +6,9 @@
  * 
  * Based on work by Nigel Tao (at https://github.com/google/wuffs/)
  * who credits Ken Thompson for the design (via a reference to the Go source
- * code).
- * 
+ * code). See
+ * https://github.com/google/wuffs/blob/aa46859ea40c72516deffa1b146121952d6dfd3b/internal/cgen/base/floatconv-submodule-data.c
+ * https://github.com/google/wuffs/blob/46cd8105f47ca07ae2ba8e6a7818ef9c0df6c152/internal/cgen/base/floatconv-submodule-code.c
  * It is probably not very fast but it is a fallback that should almost never
  * be used in reallife.
  **/
@@ -28,11 +29,14 @@ inline void trim(decimal &h) {
 
 /** If you ever want to see what is going on, the following function might prove handy:
  * **/
-void print(const decimal d) {
+void print(const decimal d, int32_t exp2 = 0) {
+  printf("0.");
   for(size_t i = 0; i < d.num_digits; i++) {
     printf("%d", int(d.digits[i]));
   }
-  printf("[%d]", d.decimal_point);
+  printf(" * 10 **%d ", d.decimal_point);
+  printf(" * 2 **%d ", exp2);
+
 }
 
 
@@ -280,7 +284,7 @@ adjusted_mantissa compute_float(decimal &d) {
       if (d.digits[0] >= 5) {
         break;
       }
-      shift = (d.digits[0] <= 2) ? 2 : 1;
+      shift = 1;
     } else {
       uint32_t n = uint32_t(-d.decimal_point);
       shift = (n < num_powers) ? powers[n] : max_shift;
@@ -294,6 +298,7 @@ adjusted_mantissa compute_float(decimal &d) {
     }
     exp2 -= int32_t(shift);
   }
+  // We are in the range [1/2 ... 1] but the binary format uses [1 ... 2].
   exp2--;
   constexpr int32_t minimum_exponent = binary::minimum_exponent();
   while ((minimum_exponent + 1) > exp2) {
@@ -304,14 +309,15 @@ adjusted_mantissa compute_float(decimal &d) {
     decimal_right_shift(d, n);
     exp2 += int32_t(n);
   }
-
   if ((exp2 - minimum_exponent) >= binary::infinite_power()) {
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
     return answer;
   }
+
   const int mantissa_size_in_bits = binary::mantissa_explicit_bits() + 1;
   decimal_left_shift(d, mantissa_size_in_bits);
+
   uint64_t mantissa = round(d);
   if(mantissa > (uint64_t(1) << mantissa_size_in_bits)) {
     decimal_right_shift(d, 1);

@@ -101,14 +101,35 @@ std::pair<double, bool> strtod_from_string(char *st) {
   return std::make_pair(d, true);
 }
 
+std::pair<float, bool> strtof_from_string(char *st) {
+  float d;
+  char *pr;
+#ifdef _WIN32
+  static _locale_t c_locale = _create_locale(LC_ALL, "C");
+  d = _strtof_l(st, &pr, c_locale);
+#else
+  static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
+  d = strtof_l(st, &pr, c_locale);
+#endif
+  if (st == pr) {
+    std::cerr << "strtof_l could not parse '" << st << std::endl;
+    return std::make_pair(0, false);
+  }
+  return std::make_pair(d, true);
+}
+
+/**
+ * We generate random strings and we try to parse them with both strtod/strtof,
+ * and we verify that we get the same answer with with fast_float::from_chars.
+ */
 bool tester(int seed, size_t volume) {
   char buffer[1024]; // large buffer (can't overflow)
   RandomEngine rand(seed);
   for (size_t i = 0; i < volume; i++) {
     if((i%100000) == 0) { std::cout << "."; std::cout.flush(); }
     size_t length = build_random_string(rand, buffer);
-    std::pair<double, bool> expected = strtod_from_string(buffer);
-    if (expected.second) {
+    std::pair<double, bool> expected_double = strtod_from_string(buffer);
+    if (expected_double.second) {
       double result_value;
       auto result =
           fast_float::from_chars(buffer, buffer + length, result_value);
@@ -122,10 +143,33 @@ bool tester(int seed, size_t volume) {
         std::cerr << " Did not get to the end " << std::endl;
         return false;
       }
-      if (result_value != expected.first) {
+      if (result_value != expected_double.first) {
         printf("parsing %.*s\n", int(length), buffer);
         std::cerr << std::hexfloat << result_value << std::endl;
-        std::cerr << std::hexfloat << expected.first << std::endl;
+        std::cerr << std::hexfloat << expected_double.first << std::endl;
+        std::cerr << " Mismatch " << std::endl;
+        return false;
+      }
+    }
+    std::pair<float, bool> expected_float = strtof_from_string(buffer);
+    if (expected_float.second) {
+      float result_value;
+      auto result =
+          fast_float::from_chars(buffer, buffer + length, result_value);
+      if (result.ec != std::errc()) {
+        printf("parsing %.*s\n", int(length), buffer);
+        std::cerr << " I could not parse " << std::endl;
+        return false;
+      }
+      if (result.ptr != buffer + length) {
+        printf("parsing %.*s\n", int(length), buffer);
+        std::cerr << " Did not get to the end " << std::endl;
+        return false;
+      }
+      if (result_value != expected_float.first) {
+        printf("parsing %.*s\n", int(length), buffer);
+        std::cerr << std::hexfloat << result_value << std::endl;
+        std::cerr << std::hexfloat << expected_float.first << std::endl;
         std::cerr << " Mismatch " << std::endl;
         return false;
       }
