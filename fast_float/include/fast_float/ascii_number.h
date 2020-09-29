@@ -243,7 +243,7 @@ decimal parse_decimal(const char *&p, const char *pend)  noexcept  {
   answer.negative = false;
   answer.truncated = false;
   // skip leading whitespace
-  while (std::isspace(*p)) {
+  while (fast_float::is_space(*p)) {
     p++;
   }
   answer.negative = (*p == '-');
