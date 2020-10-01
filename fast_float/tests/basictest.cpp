@@ -154,6 +154,10 @@ int main() {
   Assert(basic_test_64bit("-2.1470977154320536489471030463761883783915110400000000000000000000e+45", -2.1470977154320536489471030463761883783915110400000000000000000000e+45));
   Assert(basic_test_64bit("-4.4900312744003159009338275160799498340862630046359789166919680000e+61", -4.4900312744003159009338275160799498340862630046359789166919680000e+61));
   Assert(basic_test_64bit("+1", 1));
+  Assert(basic_test_64bit("1.8e308", std::numeric_limits<double>::infinity()));
+  Assert(basic_test_64bit("1.797693134862315700000000000000001e308", 1.7976931348623157e308));
+  Assert(basic_test_64bit("1.832312213213213232132132143451234453123412321321312e308", std::numeric_limits<double>::infinity()));
+  Assert(basic_test_64bit("2e30000000000000000", std::numeric_limits<double>::infinity()));
   Assert(basic_test_64bit("2e3000", std::numeric_limits<double>::infinity()));
   Assert(basic_test_64bit("1.9e308", std::numeric_limits<double>::infinity()));
   Assert(basic_test_64bit(3e-324));
