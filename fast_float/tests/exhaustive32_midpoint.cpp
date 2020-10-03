@@ -10,6 +10,20 @@ template <typename T> char *to_string(T d, char *buffer) {
   return buffer + written;
 }
 
+void strtod_from_string(const char * st, float& d) {
+    char *pr = (char *)st;
+#ifdef _WIN32
+    static _locale_t c_locale = _create_locale(LC_ALL, "C");
+    d = _strtof_l(st, &pr,  c_locale);
+#else
+    static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
+    d = strtof_l(st, &pr,  c_locale);
+#endif
+    if (pr == st) {
+      throw std::runtime_error("bug in strtod_from_string");
+    }
+}
+
 void allvalues() {
   char buffer[64];
   for (uint64_t w = 0; w <= 0xFFFFFFFF; w++) {
@@ -24,14 +38,16 @@ void allvalues() {
       float nextf = std::nextafterf(v, INFINITY);
       if(!std::isfinite(nextf)) { continue; }
       double v1{v};
+      assert(float(v1) == v);
       double v2{nextf};
-      double midv{(v1 + v2) / 2};
+      assert(float(v2) == nextf);
+      double midv{v1 + (v2 - v1) / 2};
       float expected_midv(midv);
-      if(expected_midv == v) {
-          std::cout << "potential round to even " << std::hexfloat << midv << std::endl;
-          std::cout << std::dec;  
-      }
+
       const char *string_end = to_string(midv, buffer);
+      float str_answer;
+      strtod_from_string(buffer, str_answer);
+
       float result_value;
       auto result = fast_float::from_chars(buffer, string_end, result_value);
       if (result.ec != std::errc()) {
@@ -43,9 +59,10 @@ void allvalues() {
           std::cerr << "not nan" << buffer << std::endl;
           abort();
         }
-      } else if (result_value != expected_midv) {
+      } else if (result_value != str_answer) {
         std::cerr << "no match ? " << buffer << std::endl;
-        std::cout << "started with " << std::hexfloat << v << std::endl;
+        std::cout << "started with " << std::hexfloat << midv << std::endl;
+        std::cout << "round down to " << std::hexfloat << str_answer << std::endl;
         std::cout << "got back " << std::hexfloat << result_value << std::endl; 
         std::cout << std::dec;
         abort();

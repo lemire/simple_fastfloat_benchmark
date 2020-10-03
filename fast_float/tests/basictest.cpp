@@ -110,6 +110,8 @@ int main() {
 
 
   std::cout << "======= 32 bits " << std::endl;
+  Assert(basic_test_32bit("1.1754947011469036e-38", 1.1754947011469036e-38f));
+  Assert(basic_test_32bit("7.0064923216240854e-46", 7.0064923216240854e-46f));
   Assert(basic_test_32bit("8388614.5", 8388614.5f));
   Assert(basic_test_32bit("0e9999999999999999999999999999", 0));
   Assert(basic_test_32bit("1234456789012345678901234567890e9999999999999999999999999999", std::numeric_limits<float>::infinity()));
