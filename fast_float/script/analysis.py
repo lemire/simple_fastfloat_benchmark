@@ -8,19 +8,17 @@ def log2(x):
 
 maxval = 9999999999999999999*2**64
 
-for q in range(1,28):
+for q in range(1,1000):
     d = 5**q
     b = 127 + log2(d)
     t = 2** b
-    N = 2** 128 - 2**64 - 1
+    N = maxval
     c = t//d + 1
     assert c < 2**128
     assert c >= 2**127
     K = N - (N%d)
-    #print(K)
-    #print( c * K * d<=( K + 1) * t)
     if(not(c * K * d<=( K + 1) * t)):
-      #print(q)
+      print(q)
       #print (d * c * K < t * (K + 1) )
       top = floor(t/(c  * d - t))
       if(maxval > top):
