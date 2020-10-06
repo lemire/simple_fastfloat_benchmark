@@ -15,9 +15,16 @@ for q in range(-344,0):
     z = 0
     while( (1<<z) < power5) :
         z += 1
-    v = 2 **(z + 127) // power5 + 1 # + 1 for the ceil
-    assert v < (1<<128)
-    format(v)
+    if( q >= -17 ):
+        b = z + 127
+        c = 2 ** b // power5 + 1
+        assert c < (1<<128)
+        format(c)
+    else:
+        b = 2 * z + 64
+        c = 2 ** b // power5 + 1
+        format(c)    
+    
 for q in range(0,308+1):
     power5 = 5 ** q
     format(power5)

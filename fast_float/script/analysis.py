@@ -20,4 +20,16 @@ for q in range(1,17+1):
       print(q)
       top = floor(t/(c  * d - t))
       sys.exit(-1)
+
+for q in range(18, 344+1):
+    d = 5**q
+    b = 64 + log2(d)
+    t = 2**b
+    c = t//d + 1
+    K = 2**64
+    if(not(c * K * d<=( K + 1) * t)):
+      print(q)
+      top = floor(t/(c  * d - t))
+      sys.exit(-1)
+
 print("all good")
