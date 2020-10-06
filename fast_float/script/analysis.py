@@ -23,7 +23,7 @@ for q in range(1,17+1):
 
 for q in range(18, 344+1):
     d = 5**q
-    b = 64 + log2(d)
+    b = 64 + 2*log2(d)
     t = 2**b
     c = t//d + 1
     K = 2**64
