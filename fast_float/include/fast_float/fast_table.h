@@ -3,6 +3,17 @@
 #include <cstdint>
 
 namespace fast_float {
+
+/**
+ * When mapping numbers from decimal to binary,
+ * we go from w * 10^q to m * 2^p but we have
+ * 10^q = 5^q * 2^q, so effectively
+ * we are trying to match
+ * w * 2^q * 5^q to m * 2^p. Thus the powers of two
+ * are not a concern since they can be represented
+ * exactly using the binary notation, only the powers of five
+ * affect the binary significand.
+ */ 
 constexpr int smallest_power_of_five = -344;
 constexpr int largest_power_of_five = 308;
 // truncated powers of five from 5^-344 all the way to 5^308
