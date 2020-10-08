@@ -13,13 +13,25 @@ namespace fast_float {
  * are not a concern since they can be represented
  * exactly using the binary notation, only the powers of five
  * affect the binary significand.
- */ 
-constexpr int smallest_power_of_five = -344;
+ */
+
+/**
+ * The smallest non-zero float (binary64) is 2^−1074.
+ * We take as input numbers of the form w x 10^q where w < 2^64.
+ * We have that w * 10^-343  <  2^(64-344) 5^-343 < 2^-1076.
+ * However, we have that 
+ * (2^64-1) * 10^-342 =  (2^64-1) * 2^-342 * 5^-342 > 2^−1074.
+ * Thus it is possible for a number of the form w * 10^-342 where 
+ * w is a 64-bit value to be a non-zero floating-point number.
+ *********
+ * Any number of form w * 10^309 where w>= 1 is going to be 
+ * infinite in binary64 so we never need to worry about powers
+ * of 5 greater than 308.
+ */
+constexpr int smallest_power_of_five = -342;
 constexpr int largest_power_of_five = 308;
 // truncated powers of five from 5^-344 all the way to 5^308
 const uint64_t power_of_five_128[]= {
-0x98ee4a22ecf3188b,0x9028bed2939a635c,
-0xbf29dcaba82fdeae,0x7432ee873880fc33,
 0xeef453d6923bd65a,0x113faa2906a13b3f,
 0x9558b4661b6565f8,0x4ac7ca59a424c507,
 0xbaaee17fa23ebf76,0x5d79bcf00d2df649,

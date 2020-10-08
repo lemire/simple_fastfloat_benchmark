@@ -68,18 +68,19 @@ template <typename binary>
 fastfloat_really_inline
 adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   adjusted_mantissa answer;
-  if ((w == 0) || (q < -324 - 19) ){
+  if ((w == 0) || (q < smallest_power_of_five) ){
     answer.power2 = 0;
     answer.mantissa = 0;
     // result should be zero
     return answer;
   }
-  if (q > 308) {
+  if (q > largest_power_of_five) {
     // we want to get infinity:
     answer.power2 = binary::infinite_power();
     answer.mantissa = 0;
     return answer;
-  } 
+  }
+  // At this point in time q is in [smallest_power_of_five, largest_power_of_five].
 
   // We want the most significant bit of i to be 1. Shift if needed.
   int lz = leading_zeroes(w);

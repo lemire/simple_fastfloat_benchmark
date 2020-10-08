@@ -10,7 +10,7 @@ def format(number):
     lower = number % (1<<64)
     print(""+hex(upper)+","+hex(lower)+",")
 
-for q in range(-344,0):
+for q in range(-342,0):
     power5 = 5 ** -q
     z = 0
     while( (1<<z) < power5) :
