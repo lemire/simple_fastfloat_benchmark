@@ -108,28 +108,40 @@ adjusted_mantissa compute_float(int64_t q, uint64_t w)  noexcept  {
   answer.power2 = power(int(q)) - lz - binary::minimum_exponent() + 1;
 
   if (answer.power2 <= 0) { // we have a subnormal?
-    if(-answer.power2 + 1 >= 64) {
+    // Here have that answer.power2 <= 0 so -answer.power2 >= 0
+    if(-answer.power2 + 1 >= 64) { // if we have more than 64 bits below the minimum exponent, you have a zero for sure.
       answer.power2 = 0;
       answer.mantissa = 0;
       // result should be zero
       return answer;
     } 
+    // next line is safe because -answer.power2 + 1 < 0
     answer.mantissa >>= -answer.power2 + 1;
+    // Thankfully, we can't have both "round-to-even" and subnormals because
+    // "round-to-even" only occurs for powers close to 0.
     answer.mantissa += (answer.mantissa & 1); // round up
     answer.mantissa >>= 1;
+    // There is a weird scenario where we don't have a subnormal but just.
+    // Suppose we start with 2.2250738585072013e-308, we end up
+    // with 0x3fffffffffffff x 2^-1023-53 which is technically subnormal
+    // whereas 0x40000000000000 x 2^-1023-53  is normal. Now, we need to round
+    // up 0x3fffffffffffff x 2^-1023-53  and once we do, we are no longer
+    // subnormal, but we can only know this after rounding.
+    // So we only declare a subnormal if we are smaller than the threshold.
     answer.power2 = (answer.mantissa < (uint64_t(1) << binary::mantissa_explicit_bits())) ? 0 : 1;
     return answer;
   }
+
   // usually, we round *up*, but if we fall right in between and and we have an
   // even basis, we need to round down
   // We are only concerned with the cases where 5**q fits in single 64-bit word.
-  if ((product.low == 0) &&  (q >= -17) && (q <= 23) && 
+  if ((product.low <= 1) &&  (q >= binary::min_exponent_round_to_even()) && (q <= binary::max_exponent_round_to_even()) && 
       ((answer.mantissa & 3) == 1) ) { // we may fall between two floats!
     // To be in-between two floats we need that in doing
     //   answer.mantissa = product.high >> (upperbit + 64 - binary::mantissa_explicit_bits() - 3);
     // ... we dropped out only zeroes. But if this happened, then we can go back!!!
     if((answer.mantissa  << (upperbit + 64 - binary::mantissa_explicit_bits() - 3)) ==  product.high) {
-      answer.mantissa ^= 1;             // flip it so that we do not round up
+      answer.mantissa &= ~1;          // flip it so that we do not round up
     }
   }
 

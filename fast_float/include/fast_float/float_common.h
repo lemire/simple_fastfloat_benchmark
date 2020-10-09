@@ -141,6 +141,8 @@ struct binary_format {
   static constexpr int sign_index();
   static constexpr int min_exponent_fast_path();
   static constexpr int max_exponent_fast_path();
+  static constexpr int max_exponent_round_to_even();
+  static constexpr int min_exponent_round_to_even();
   static constexpr uint64_t max_mantissa_fast_path();
   static constexpr T exact_power_of_ten(int64_t power);
   constexpr static double powers_of_ten_double[] = {
@@ -157,6 +159,27 @@ constexpr int binary_format<double>::mantissa_explicit_bits() {
 template <>
 constexpr int binary_format<float>::mantissa_explicit_bits() { 
   return 23;
+}
+
+template <>
+constexpr int binary_format<double>::max_exponent_round_to_even() {
+  return 23;
+}
+
+template <>
+constexpr int binary_format<float>::max_exponent_round_to_even() {
+  return 10;
+}
+
+
+template <>
+constexpr int binary_format<double>::min_exponent_round_to_even() {
+  return -4;
+}
+
+template <>
+constexpr int binary_format<float>::min_exponent_round_to_even() {
+  return -17;
 }
 
 template <>
