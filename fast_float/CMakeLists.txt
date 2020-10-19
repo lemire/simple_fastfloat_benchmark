@@ -28,7 +28,7 @@ if(FASTFLOAT_SANITIZE)
   endif()
 endif()
 
-
-enable_testing()
-
-add_subdirectory(tests)
+if(FASTFLOAT_TEST)
+  enable_testing()
+  add_subdirectory(tests)
+endif(FASTFLOAT_SANITIZE)

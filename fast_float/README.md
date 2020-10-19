@@ -1,7 +1,11 @@
 ## fast_float number parsing library
 
-The fast_float library provides fast implementation for the following two
-functions with a C++17-like syntax:
+The fast_float library provides fast header-only implementations for the C++ from_chars
+functions for `float` and `double` types.  These functions convert ASCII strings representing
+decimal values (e.g., `1.3e10`) into binary types. We provide exact rounding (including
+round to even). In our experience, these `fast_float` functions are faster than any other comparable number-parsing functions. They provide a performance similar to that of the [fast_double_parser](https://github.com/lemire/fast_double_parser) but using an novel algorithm reworked from the ground up, and while offering an API more in line with the expectations of C++ programmers.
+
+Specifically, `fast_float` provides the following two functions with a C++17-like syntax:
 
 ```C++
 from_chars_result from_chars(const char* first, const char* last, float& value, ...);
@@ -17,7 +21,7 @@ struct from_chars_result {
 ```
 
 It parses the character sequence [first,last) for a number. It parses floating-point numbers expecting
-a locale-indepent format equivalent to what is used by std::strtod in the default ("C") locale. 
+a locale-indepent format equivalent to what is used by `std::strtod` in the default ("C") locale. 
 The resulting floating-point value is the closest floating-point values (using either float or double), 
 using the "round to even" convention for values that would otherwise fall right in-between two values.
 That is, we provide exact parsing according to the IEEE standard.
@@ -49,11 +53,24 @@ the type `fast_float::chars_format`. It is a bitset value: we check whether
 to determine whether we allow the fixed point and scientific notation respectively.
 The default is  `fast_float::chars_format::general` which allows both `fixed` and `scientific`.
 
+## Using as a CMake dependency
+
+This library is header-only by design. The CMake file provides the `fast_float` target
+which is merely a pointer to the `include` directory.
+
+If you drop the `fast_float` repository in your CMake project, you should be able to use
+it in this manner:
+
+```
+add_subdirectory(fast_float)
+target_link_libraries(myprogram PUBLIC fast_float)
+```
+
+
+
 ## Requirements and Limitations
 
-In many cases, this library can be used as a drop-in replacement for the C++17 `from_chars` function, especially
-when performance is a concerned. Thus we expect C++17 support. Though it might be reasonable to want
-C++17 features as part of old compilers, support old systems is not an objective of this library.
+In many cases, this library can be used as a drop-in replacement for the C++17 `from_chars` function, especially when performance is a concerned. Thus we expect C++17 support. Though it might be reasonable to want C++17 features as part of old compilers, support old systems is not an objective of this library.
 
 The `from_chars` is meant to be locale-independent. Thus it is not an objective of this library to support
 locale-sensitive parsing.
