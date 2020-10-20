@@ -1,6 +1,8 @@
 # simple_fastfloat_benchmark
 
-Your compiler needs to support C++17.
+This repository contains benchmarking code related to the [fast_float](https://github.com/lemire/fast_float.git) number parsing library.
+It supports at least Linux, macOS and Windows (Visual Studio).
+
 
 If you have a recent version of CMake (3.15 or better) under linux, macOS or freeBSD,  you can simply
 go in the directory and type the following commands:
@@ -20,6 +22,7 @@ cmake --build build --config Release
 ```
 
 
+While the `fast_float` library only requires C++11, for this benchmark, we are assuming that your compiler supports C++17.
 
 ## Example output
 
