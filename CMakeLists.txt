@@ -28,6 +28,13 @@ if(NOT abseil_POPULATED)
 endif()
 
 
+include(FetchContent)
 
-add_subdirectory(fast_float)
+FetchContent_Declare(
+  fast_float
+  GIT_REPOSITORY https://github.com/lemire/fast_float.git
+  GIT_TAG origin/main
+  GIT_SHALLOW TRUE)
+
+FetchContent_MakeAvailable(fast_float)
 add_subdirectory(benchmarks)
