@@ -29,12 +29,9 @@
 #include <sstream>
 #include <stdio.h>
 #include <vector>
-
 #include <locale.h>
 
-namespace internal {
-  char *to_chars(char *first, const char *last, double value);
-}
+#include "random_generators.h"
 
 /**
  * Determining whether we should import xlocale.h or not is
@@ -82,7 +79,7 @@ double findmax_netlib(std::vector<std::string> &s) {
     char *pr = (char *)st.data();
     x = netlib_strtod(st.data(), &pr);
     if (pr == st.data()) {
-      throw std::runtime_error("bug in findmax_netlib");
+      throw std::runtime_error(std::string("bug in findmax_netlib ")+st);
     }
     answer = answer > x ? answer : x;
   }
@@ -256,49 +253,34 @@ void fileload(const char *filename) {
   process(lines, volume);
 }
 
-/**
- * This will generate a string with exactly the number of digits
- * that are required to always be able to recover the original
- * number (irrespective of the number). So 17 digits in the case
- * of a double.
- * E.g., 3.7018502067730191e-02
- */
-template <typename T> std::string accurate_to_string(T d) {
-  std::string answer;
-  answer.resize(64);
-  auto written = std::snprintf(answer.data(), 64, "%.*e",
-                               std::numeric_limits<T>::max_digits10 - 1, d);
-  if(written > 24) { abort(); }
-  answer.resize(written);
-  return answer;
-}
-template <typename T> std::string accurate_to_string_concise(T d) {
-  std::string answer;
-  answer.resize(64);
-  auto result = internal::to_chars(answer.data(), answer.data() + 64, d);
-  if(result == answer.data()) { abort(); }
-  if(result - answer.data() > 24) { abort(); }
-  answer.resize(result - answer.data());
-  return answer;
-}
 
-void parse_random_numbers(size_t howmany, bool concise) {
-  std::cout << "# parsing random integers in the range [0,1)" << std::endl;
+void parse_random_numbers(size_t howmany, bool concise, std::string random_model) {
+  std::cout << "# parsing random numbers" << std::endl;
   std::vector<std::string> lines;
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<double> dis(0, 1);
+  auto g = std::unique_ptr<string_number_generator>(get_generator_by_name(random_model));
+  std::cout << "model: " << g->describe() << std::endl;
   lines.reserve(howmany); // let us reserve plenty of memory.
   size_t volume = 0;
   for (size_t i = 0; i < howmany; i++) {
-    double x = dis(gen);
-    std::string line = concise ? accurate_to_string_concise(x) : accurate_to_string(x);
+    std::string line =  g->new_string(concise);
     volume += line.size();
     lines.push_back(line);
   }
   process(lines, volume);
 }
 
+
+/*
+
+                <value>toString(1 / rand())</value>
+                <value>toString(rand() / 0xFFFFFFFF)</value>
+                <value>toString(0xFFFFFFFF / rand())</value>
+                <value>toString(rand())</value>
+                <value>toString(rand64())</value>
+                <value>concat(toString(rand(1)), '.', toString(rand(2)))</value>
+                <value>concat(toString(rand(1)), 'e', toString(rand(2) % 100))</value>
+                <value>concat(toString(rand64(1)), toString(rand64(2)), toString(rand64(3)))</value>
+*/
 cxxopts::Options
     options("benchmark",
             "Compute the parsing speed of different number parsers.");
@@ -308,6 +290,7 @@ int main(int argc, char **argv) {
     options.add_options()
         ("c,concise", "Concise random floating-point strings (if not 17 digits are used)")
         ("f,file", "File name.", cxxopts::value<std::string>()->default_value(""))
+        ("m,model", "Random Model.", cxxopts::value<std::string>()->default_value("uniform"))
         ("h,help","Print usage.");
     auto result = options.parse(argc, argv);
     if(result["help"].as<bool>()) {
@@ -315,7 +298,7 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
     if (result["file"].as<std::string>().empty()) {
-      parse_random_numbers(100 * 1000, result["concise"].as<bool>());
+      parse_random_numbers(100 * 1000, result["concise"].as<bool>(), result["model"].as<std::string>());
       std::cout << "# You can also provide a filename (with the -f flag): it should contain one "
                    "string per line corresponding to a number"
                 << std::endl;
