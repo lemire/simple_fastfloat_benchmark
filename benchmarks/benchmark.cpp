@@ -269,18 +269,6 @@ void parse_random_numbers(size_t howmany, bool concise, std::string random_model
   process(lines, volume);
 }
 
-
-/*
-
-                <value>toString(1 / rand())</value>
-                <value>toString(rand() / 0xFFFFFFFF)</value>
-                <value>toString(0xFFFFFFFF / rand())</value>
-                <value>toString(rand())</value>
-                <value>toString(rand64())</value>
-                <value>concat(toString(rand(1)), '.', toString(rand(2)))</value>
-                <value>concat(toString(rand(1)), 'e', toString(rand(2) % 100))</value>
-                <value>concat(toString(rand64(1)), toString(rand64(2)), toString(rand64(3)))</value>
-*/
 cxxopts::Options
     options("benchmark",
             "Compute the parsing speed of different number parsers.");
