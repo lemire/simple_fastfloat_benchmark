@@ -28,7 +28,6 @@ if(NOT abseil_POPULATED)
 endif()
 
 
-include(FetchContent)
 
 FetchContent_Declare(
   fast_float
@@ -37,4 +36,13 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE)
 
 FetchContent_MakeAvailable(fast_float)
+
+FetchContent_Declare(doubleconversion 
+     GIT_REPOSITORY https://github.com/google/double-conversion.git 
+     GIT_TAG "v3.1.5")
+FetchContent_GetProperties(doubleconversion)
+FetchContent_MakeAvailable(doubleconversion)
+
+
+
 add_subdirectory(benchmarks)

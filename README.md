@@ -60,26 +60,30 @@ from_chars                              :   104.53 MB/s (+/- 2.0 %)
 
 GNU  GCC 9 (Linux):
 ```
-$ ./build/benchmarks/Release/benchmark.exe
-## parsing random integers in the range [0,1)
-volume = 2.09808 MB
-netlib                                  :   237.46 MB/s (+/- 0.7 %)
-strtod                                  :   191.46 MB/s (+/- 0.2 %)
-abseil                                  :   424.17 MB/s (+/- 0.1 %)
-fastfloat                               :  1086.65 MB/s (+/- 0.3 %)
-# You can also provide a filename: it should contain one string per line corresponding to a number
-$ ./build/benchmarks/benchmark data/canada.txt
-# read 111126 lines
-volume = 1.93374 MB
-netlib                                  :   237.87 MB/s (+/- 0.6 %)
-strtod                                  :   141.08 MB/s (+/- 0.6 %)
-abseil                                  :   369.22 MB/s (+/- 1.2 %)
-fastfloat                               :   782.45 MB/s (+/- 0.2 %)
-$ ./build/benchmarks/benchmark data/mesh.txt
-# read 73019 lines
-volume = 0.536009 MB
-netlib                                  :   299.96 MB/s (+/- 0.5 %)
-strtod                                  :   111.87 MB/s (+/- 1.7 %)
-abseil                                  :   208.33 MB/s (+/- 0.9 %)
-fastfloat                               :   664.53 MB/s (+/- 2.3 %)
+$ ./build/benchmarks/benchmark 
+# parsing random integers in the range [0,1)
+volume = 2.09808 MB 
+netlib                                  :   271.18 MB/s (+/- 1.2 %)    12.93 Mfloat/s  
+doubleconversion                        :   225.35 MB/s (+/- 1.2 %)    10.74 Mfloat/s  
+strtod                                  :   190.94 MB/s (+/- 1.6 %)     9.10 Mfloat/s  
+abseil                                  :   430.45 MB/s (+/- 2.2 %)    20.52 Mfloat/s  
+fastfloat                               :  1042.38 MB/s (+/- 9.9 %)    49.68 Mfloat/s  
+
+$ ./build/benchmarks/benchmark -f data/canada.txt 
+# read 111126 lines 
+volume = 1.93374 MB 
+netlib                                  :   287.92 MB/s (+/- 1.5 %)    16.55 Mfloat/s  
+doubleconversion                        :   203.95 MB/s (+/- 1.4 %)    11.72 Mfloat/s  
+strtod                                  :   139.51 MB/s (+/- 2.0 %)     8.02 Mfloat/s  
+abseil                                  :   399.62 MB/s (+/- 1.7 %)    22.96 Mfloat/s  
+fastfloat                               :   912.10 MB/s (+/- 2.3 %)    52.42 Mfloat/s  
+
+$ ./build/benchmarks/benchmark -f data/mesh.txt 
+# read 73019 lines 
+volume = 0.536009 MB 
+netlib                                  :   309.97 MB/s (+/- 2.8 %)    42.23 Mfloat/s  
+doubleconversion                        :   221.93 MB/s (+/- 1.5 %)    30.23 Mfloat/s  
+strtod                                  :   117.69 MB/s (+/- 1.8 %)    16.03 Mfloat/s  
+abseil                                  :   243.55 MB/s (+/- 2.8 %)    33.18 Mfloat/s  
+fastfloat                               :   657.04 MB/s (+/- 4.6 %)    89.51 Mfloat/s  
 ```

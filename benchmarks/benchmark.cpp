@@ -3,6 +3,10 @@
 #include "absl/strings/numbers.h"
 #include "fast_float/fast_float.h"
 
+
+#include "double-conversion/ieee.h"
+#include "double-conversion/double-conversion.h"
+
 #define IEEE_8087
 #include "cxxopts.hpp"
 
@@ -47,6 +51,29 @@ namespace internal {
 #include <xlocale.h>
 #endif
 #endif
+
+double findmax_doubleconversion(std::vector<std::string> &s) {
+  double answer = 0;
+  double x;
+  int flags = double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
+              double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
+              double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
+  double empty_string_value = 0.0;
+  uc16 separator = double_conversion::StringToDoubleConverter::kNoSeparator;
+  double_conversion::StringToDoubleConverter converter(
+      flags, empty_string_value, double_conversion::Double::NaN(), NULL, NULL,
+      separator);
+  int processed_characters_count;
+  for (std::string &st : s) {
+    x = converter.StringToDouble(st.data(), st.size(),
+                                 &processed_characters_count);
+    if (processed_characters_count == 0) {
+      throw std::runtime_error("bug in findmax_doubleconversion");
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
 
 double findmax_netlib(std::vector<std::string> &s) {
   double answer = 0;
@@ -176,7 +203,7 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / min_ns,
            (average_ns - min_ns) * 100.0 / average_ns);
-  printf("%8.2f Mint/s  ", 
+  printf("%8.2f Mfloat/s  ", 
            number_of_floats * 1000 / min_ns);
   if(instructions_min > 0) {
     printf(" %8.2f i/B %8.2f i/f (+/- %.1f %%) ", 
@@ -202,6 +229,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
   pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
+  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion, repeat));
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
@@ -288,7 +316,7 @@ int main(int argc, char **argv) {
     }
     if (result["file"].as<std::string>().empty()) {
       parse_random_numbers(100 * 1000, result["concise"].as<bool>());
-      std::cout << "# You can also provide a filename: it should contain one "
+      std::cout << "# You can also provide a filename (with the -f flag): it should contain one "
                    "string per line corresponding to a number"
                 << std::endl;
     } else {
