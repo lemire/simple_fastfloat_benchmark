@@ -24,6 +24,36 @@ cmake --build build --config Release
 
 While the `fast_float` library only requires C++11, for this benchmark, we are assuming that your compiler supports C++17.
 
+## Advanced Usage
+
+Parse the strings (one per line) included in a text file:
+
+```
+./build/benchmarks/benchmark -f data/canada.txt
+```
+
+Parse strings generated from floats in (0,1):
+
+
+```
+./build/benchmarks/benchmark
+```
+
+Parse strings generated from floats in (0,1), using a few digits as possible during the serialization:
+
+```
+./build/benchmarks/benchmark -c
+```
+
+
+Parse strings generated from floats in the `int_e_int`model (credit @alexey-milovidov), using a few digits as possible during the serialization:
+
+```
+./build/benchmarks/benchmark -m int_e_int
+```
+
+There a different models available, they are printed out in the console.
+
 ## Example output
 
 Visual Studio 2019:
@@ -39,7 +69,7 @@ fastfloat                               :   630.15 MB/s (+/- 6.9 %)
 from_chars                              :   142.41 MB/s (+/- 3.1 %)
 # You can also provide a filename: it should contain one string per line corresponding to a number
 
-$ ./build/benchmarks/Release/benchmark.exe data/canada.txt
+$ ./build/benchmarks/Release/benchmark.exe -f data/canada.txt
 # read 111126 lines
 volume = 1.93374 MB
 netlib                                  :   354.43 MB/s (+/- 5.6 %)
@@ -48,7 +78,7 @@ abseil                                  :   268.35 MB/s (+/- 3.2 %)
 fastfloat                               :   533.79 MB/s (+/- 3.8 %)
 from_chars                              :   119.55 MB/s (+/- 2.6 %)
 
-$ ./build/benchmarks/Release/benchmark.exe data/mesh.txt
+$ ./build/benchmarks/Release/benchmark.exe -f  data/mesh.txt
 # read 73019 lines
 volume = 0.536009 MB
 netlib                                  :   329.79 MB/s (+/- 5.4 %)
