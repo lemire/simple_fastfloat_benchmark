@@ -259,6 +259,8 @@ void parse_random_numbers(size_t howmany, bool concise, std::string random_model
   std::vector<std::string> lines;
   auto g = std::unique_ptr<string_number_generator>(get_generator_by_name(random_model));
   std::cout << "model: " << g->describe() << std::endl;
+  if(concise) { std::cout << "concise (using as few digits as possible)"  << std::endl; }
+  std::cout << "volume: "<< howmany << " floats"  << std::endl;
   lines.reserve(howmany); // let us reserve plenty of memory.
   size_t volume = 0;
   for (size_t i = 0; i < howmany; i++) {
@@ -278,6 +280,7 @@ int main(int argc, char **argv) {
     options.add_options()
         ("c,concise", "Concise random floating-point strings (if not 17 digits are used)")
         ("f,file", "File name.", cxxopts::value<std::string>()->default_value(""))
+        ("v,volume", "Volume (number of floats generated).", cxxopts::value<size_t>()->default_value("100000"))
         ("m,model", "Random Model.", cxxopts::value<std::string>()->default_value("uniform"))
         ("h,help","Print usage.");
     auto result = options.parse(argc, argv);
@@ -286,7 +289,7 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
     if (result["file"].as<std::string>().empty()) {
-      parse_random_numbers(100 * 1000, result["concise"].as<bool>(), result["model"].as<std::string>());
+      parse_random_numbers(result["volume"].as<size_t>(), result["concise"].as<bool>(), result["model"].as<std::string>());
       std::cout << "# You can also provide a filename (with the -f flag): it should contain one "
                    "string per line corresponding to a number"
                 << std::endl;
