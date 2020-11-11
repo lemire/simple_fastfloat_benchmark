@@ -218,6 +218,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
            (cycles_avg - cycles_min) * 100.0 / cycles_avg);
     printf(" %8.2f i/c ", 
            instructions_min /cycles_min);
+    printf(" %8.2f GHz ", 
+           cycles_min / min_ns);
   }
   printf("\n");
 
