@@ -24,6 +24,8 @@ cmake --build build --config Release
 
 While the `fast_float` library only requires C++11, for this benchmark, we are assuming that your compiler supports C++17.
 
+You may use docker to run these benchmarks easily on a variety of platforms: see https://github.com/lemire/docker_programming_station
+
 ## Advanced Usage
 
 Parse the strings (one per line) included in a text file:
