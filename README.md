@@ -4,7 +4,7 @@ This repository contains benchmarking code related to the [fast_float](https://g
 It supports at least Linux, macOS and Windows (Visual Studio).
 
 
-If you have a recent version of CMake (3.15 or better) under linu,  you can simply
+If you have a recent version of CMake (3.15 or better) under linux,  you can simply
 go in the directory and type the following commands:
 
 ```
@@ -18,6 +18,17 @@ cmake --build build
 While the `fast_float` library only requires C++11, for this benchmark, we are assuming that your compiler supports C++17.
 
 You may use docker to run these benchmarks easily on a variety of platforms: see https://github.com/lemire/docker_programming_station
+
+
+## Windows
+
+Usage under Windows is similar. After installing cmake and Visual Studio 2019, one might type in the appropriate shell:
+
+```
+cmake -B build .
+cmake --build build --config Release
+.\buildb/enchmarks\Release\benchmark.exe
+```
 
 ## Advanced Usage
 

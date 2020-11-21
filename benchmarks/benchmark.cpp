@@ -9,8 +9,9 @@
 
 #define IEEE_8087
 #include "cxxopts.hpp"
-
+#ifdef __linux__
 #include "event_counter.h"
+#endif
 #include "dtoa.c"
 #include <algorithm>
 #include <charconv>
@@ -149,7 +150,7 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
   }
   return answer;
 }
-
+#ifdef __linux__
 template <class T>
 std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
@@ -224,7 +225,39 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   printf("\n");
 
 }
+#else
+template <class T>
+std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
+                                     T const &function, size_t repeat) {
+  std::chrono::high_resolution_clock::time_point t1, t2;
+  double average = 0;
+  double min_value = DBL_MAX;
+  for (size_t i = 0; i < repeat; i++) {
+    t1 = std::chrono::high_resolution_clock::now();
+    double ts = function(lines);
+    if (ts == 0) {
+      printf("bug\n");
+    }
+    t2 = std::chrono::high_resolution_clock::now();
+    double dif =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+    average += dif;
+    min_value = min_value < dif ? min_value : dif;
+  }
+  average /= repeat;
+  return std::make_pair(min_value, average);
+}
 
+
+
+
+void pretty_print(double volume, size_t number_of_floats, std::string name, std::pair<double,double> result) {
+  double volumeMB = volume / (1024. * 1024.);
+  printf("%-40s: %8.2f MB/s (+/- %.1f %%)\n", name.data(),
+           volumeMB * 1000000000 / result.first,
+           (result.second - result.first) * 100.0 / result.second);
+}
+#endif 
 void process(std::vector<std::string> &lines, size_t volume) {
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
