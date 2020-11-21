@@ -208,9 +208,11 @@ std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
 
 void pretty_print(double volume, size_t number_of_floats, std::string name, std::pair<double,double> result) {
   double volumeMB = volume / (1024. * 1024.);
-  printf("%-40s: %8.2f MB/s (+/- %.1f %%)\n", name.data(),
+  printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / result.first,
            (result.second - result.first) * 100.0 / result.second);
+  printf(" %8.2f ns/f \n", 
+           double(result.first) /number_of_floats );
 }
 #endif 
 void process(std::vector<std::string> &lines, size_t volume) {
