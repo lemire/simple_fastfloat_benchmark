@@ -299,6 +299,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / result.first,
            (result.second - result.first) * 100.0 / result.second);
+  printf("%8.2f Mfloat/s  ", 
+           number_of_floats * 1000 / result.first);
   printf(" %8.2f ns/f \n", 
            double(result.first) /number_of_floats );
 }
