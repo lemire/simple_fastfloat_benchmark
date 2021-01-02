@@ -116,8 +116,8 @@ struct bigint_int_dot_int : string_number_generator {
 
 std::vector<std::string> model_names = {"uniform", "one_over_rand32", "simple_uniform32", "simple_int32",  "int_e_int",  "simple_int64",  "bigint_int_dot_int", "big_ints"};
 string_number_generator* get_generator_by_name(std::string name) {
-    std::cout << "available models :";
-    for(std::string name : model_names) { std::cout << name << ",";  }
+    std::cout << "available models (-m): ";
+    for(std::string name : model_names) { std::cout << name << " ";  }
     std::cout << std::endl;
     // This is naive, but also not very important.
     if(name == "uniform") { return new uniform_generator(); }
