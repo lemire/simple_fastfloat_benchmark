@@ -138,48 +138,6 @@ double findmax_fastfloat(std::vector<std::string> &s) {
   return answer;
 }
 
-namespace fast_float {
-// This function sidesteps the computation of the
-// float itself.
-template<typename T>
-from_chars_result from_chars_fake(const char *first, const char *last,
-                             T &value, chars_format fmt = chars_format::general)  noexcept  {
-  static_assert (std::is_same<T, double>::value || std::is_same<T, float>::value, "only float and double are supported");
-
-
-  from_chars_result answer;
-  while ((first != last) && fast_float::is_space(uint8_t(*first))) {
-    first++;
-  }
-  if (first == last) {
-    answer.ec = std::errc::invalid_argument;
-    answer.ptr = first;
-    return answer;
-  }
-  parsed_number_string pns = parse_number_string(first, last, fmt);
-  if (!pns.valid) {
-    return parse_infnan(first, last, value);
-  }
-  answer.ec = std::errc(); // be optimistic
-  answer.ptr = pns.lastmatch;
-  value = T(pns.mantissa + pns.exponent);
-  return answer;
-}
-
-}
-double findmax_fastfloat_fake(std::vector<std::string> &s) {
-  double answer = 0;
-  double x = 0;
-  for (std::string &st : s) {
-    auto [p, ec] = fast_float::from_chars_fake(st.data(), st.data() + st.size(), x);
-    if (p == st.data()) {
-      throw std::runtime_error("bug in findmax_fastfloat");
-    }
-    answer = answer > x ? answer : x;
-  }
-  return answer;
-}
-
 
 double findmax_absl_from_chars(std::vector<std::string> &s) {
   double answer = 0;
@@ -314,11 +272,9 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
-  pretty_print(volume, lines.size(), "fastfloat (fake)", time_it_ns(lines, findmax_fastfloat_fake, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
-  std::cout << "Note: fastfloat (fake) bypasses the floating-point number generation and only parses the string." << std::endl;
 }
 
 void fileload(const char *filename) {
