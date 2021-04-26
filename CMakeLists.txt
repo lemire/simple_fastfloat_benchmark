@@ -10,6 +10,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(FetchContent)
+include(ExternalProject)
 set(ABSL_ENABLE_INSTALL ON)
 set(ABSL_RUN_TEST OFF CACHE INTERNAL "")
 set(ABSL_USE_GOOGLETEST_HEAD OFF CACHE INTERNAL "")
@@ -28,14 +29,12 @@ if(NOT abseil_POPULATED)
 endif()
 
 
-
-FetchContent_Declare(
-  fast_float
-  GIT_REPOSITORY https://github.com/lemire/fast_float.git
-  GIT_TAG origin/main
-  GIT_SHALLOW TRUE)
-
+FetchContent_Declare(fast_float
+     GIT_REPOSITORY https://github.com/lemire/fast_float.git
+     GIT_TAG origin/main
+     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(fast_float)
+
 
 FetchContent_Declare(doubleconversion 
      GIT_REPOSITORY https://github.com/google/double-conversion.git 
@@ -43,6 +42,26 @@ FetchContent_Declare(doubleconversion
 FetchContent_GetProperties(doubleconversion)
 FetchContent_MakeAvailable(doubleconversion)
 
-
+# Not CMake; gotta struggle a bit
+# Copying is a hack.
+ExternalProject_Add(ryu 
+     GIT_REPOSITORY https://github.com/ulfjack/ryu
+     GIT_TAG 6f85836b6389dce334692829d818cdedb28bfa00
+     BUILD_IN_SOURCE 1
+     BUILD_ALWAYS 1
+     CONFIGURE_COMMAND ""
+     BUILD_COMMAND bazel build //ryu:ryu_parse --compilation_mode opt
+     COMMAND cp -f ryu/ryu_parse.h "${CMAKE_BINARY_DIR}"
+     COMMAND cp -f bazel-bin/ryu/libryu_parse.a "${CMAKE_BINARY_DIR}"
+     INSTALL_COMMAND ""
+     )
+add_library(ryu_parse STATIC IMPORTED GLOBAL)
+set_property(TARGET ryu_parse
+  PROPERTY IMPORTED_LOCATION
+  ${CMAKE_BINARY_DIR}/libryu_parse.a)
+target_include_directories(ryu_parse PUBLIC
+  INTERFACE
+    ${CMAKE_BINARY_DIR}
+)
 
 add_subdirectory(benchmarks)

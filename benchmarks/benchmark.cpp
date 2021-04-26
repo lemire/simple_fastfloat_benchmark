@@ -2,6 +2,7 @@
 #include "absl/strings/charconv.h"
 #include "absl/strings/numbers.h"
 #include "fast_float/fast_float.h"
+#include "ryu_parse.h"
 
 
 #include "double-conversion/ieee.h"
@@ -29,6 +30,7 @@
 #include <random>
 #include <sstream>
 #include <stdio.h>
+#include <string>
 #include <vector>
 #include <locale.h>
 
@@ -81,6 +83,20 @@ double findmax_netlib(std::vector<std::string> &s) {
     x = netlib_strtod(st.data(), &pr);
     if (pr == st.data()) {
       throw std::runtime_error(std::string("bug in findmax_netlib ")+st);
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
+
+double findmax_ryus2d(std::vector<std::string> &s) {
+  double answer = 0;
+  double x = 0;
+  for (std::string &st : s) {
+    // Ryu does not track character consumption (boo), but we can at least...
+    Status stat = s2d(st.data(), &x);
+    if (stat != SUCCESS) {
+      throw std::runtime_error(std::string("bug in findmax_ryus2d ")+st + " " + std::to_string(stat));
     }
     answer = answer > x ? answer : x;
   }
@@ -270,6 +286,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
   pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion, repeat));
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
+  pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat));
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
