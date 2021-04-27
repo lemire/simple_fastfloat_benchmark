@@ -2,7 +2,10 @@
 #include "absl/strings/charconv.h"
 #include "absl/strings/numbers.h"
 #include "fast_float/fast_float.h"
+
+#ifdef ENABLE_RYU
 #include "ryu_parse.h"
+#endif
 
 
 #include "double-conversion/ieee.h"
@@ -89,6 +92,7 @@ double findmax_netlib(std::vector<std::string> &s) {
   return answer;
 }
 
+#ifdef ENABLE_RYU
 double findmax_ryus2d(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
@@ -102,6 +106,7 @@ double findmax_ryus2d(std::vector<std::string> &s) {
   }
   return answer;
 }
+#endif
 
 double findmax_strtod(std::vector<std::string> &s) {
   double answer = 0;
@@ -122,6 +127,8 @@ double findmax_strtod(std::vector<std::string> &s) {
   }
   return answer;
 }
+// Why not `|| __cplusplus > 201703L`? Because GNU libstdc++ does not have
+// float parsing for std::from_chars.
 #if defined(_MSC_VER)
 #define FROM_CHARS_AVAILABLE_MAYBE
 #endif
@@ -286,7 +293,9 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
   pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion, repeat));
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
+#ifdef ENABLE_RYU
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat));
+#endif
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE

@@ -44,24 +44,26 @@ FetchContent_MakeAvailable(doubleconversion)
 
 # Not CMake; gotta struggle a bit
 # Copying is a hack.
-ExternalProject_Add(ryu 
-     GIT_REPOSITORY https://github.com/ulfjack/ryu
-     GIT_TAG 6f85836b6389dce334692829d818cdedb28bfa00
-     BUILD_IN_SOURCE 1
-     BUILD_ALWAYS 1
-     CONFIGURE_COMMAND ""
-     BUILD_COMMAND bazel build //ryu:ryu_parse --compilation_mode opt
-     COMMAND cp -f ryu/ryu_parse.h "${CMAKE_BINARY_DIR}"
-     COMMAND cp -f bazel-bin/ryu/libryu_parse.a "${CMAKE_BINARY_DIR}"
-     INSTALL_COMMAND ""
-     )
-add_library(ryu_parse STATIC IMPORTED GLOBAL)
-set_property(TARGET ryu_parse
-  PROPERTY IMPORTED_LOCATION
-  ${CMAKE_BINARY_DIR}/libryu_parse.a)
-target_include_directories(ryu_parse PUBLIC
-  INTERFACE
-    ${CMAKE_BINARY_DIR}
-)
+find_program(BAZEL bazel)
+if(BAZEL)
+    set(ENABLE_RYU ON CACHE INTERNAL "")
+    ExternalProject_Add(ryu 
+        GIT_REPOSITORY https://github.com/ulfjack/ryu
+        GIT_TAG 6f85836b6389dce334692829d818cdedb28bfa00
+        BUILD_IN_SOURCE 1
+        BUILD_ALWAYS 1
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND bazel build //ryu:ryu_parse --compilation_mode opt
+        COMMAND cp -f ryu/ryu_parse.h "${CMAKE_BINARY_DIR}"
+        COMMAND cp -f bazel-bin/ryu/libryu_parse.a "${CMAKE_BINARY_DIR}"
+        INSTALL_COMMAND "")
+    add_library(ryu_parse STATIC IMPORTED GLOBAL)
+    set_property(TARGET ryu_parse
+        PROPERTY IMPORTED_LOCATION
+        ${CMAKE_BINARY_DIR}/libryu_parse.a)
+    target_include_directories(ryu_parse PUBLIC
+        INTERFACE
+        ${CMAKE_BINARY_DIR})
+endif(BAZEL)
 
 add_subdirectory(benchmarks)

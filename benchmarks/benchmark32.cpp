@@ -2,7 +2,10 @@
 #include "absl/strings/charconv.h"
 #include "absl/strings/numbers.h"
 #include "fast_float/fast_float.h"
+
+#ifdef ENABLE_RYU
 #include "ryu_parse.h"
+#endif
 
 
 #include "cxxopts.hpp"
@@ -84,6 +87,7 @@ double findmax_from_chars(std::vector<std::string> &s) {
 }
 #endif
 
+#ifdef ENABLE_RYU
 double findmax_ryus2f(std::vector<std::string> &s) {
   float answer = 0;
   float x = 0;
@@ -97,6 +101,7 @@ double findmax_ryus2f(std::vector<std::string> &s) {
   }
   return answer;
 }
+#endif
 
 double findmax_fastfloat(std::vector<std::string> &s) {
   float answer = 0;
@@ -236,7 +241,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
   pretty_print(volume, lines.size(), "strtof", time_it_ns(lines, findmax_strtof, repeat));
-#if 0
+#if 0 && defined(ENABLE_RYU)
   // Ryu finds the input too long. Not odd, since it's random doubles...
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2f, repeat));
 #endif
