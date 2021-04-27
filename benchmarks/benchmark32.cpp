@@ -3,6 +3,10 @@
 #include "absl/strings/numbers.h"
 #include "fast_float/fast_float.h"
 
+#ifdef ENABLE_RYU
+#include "ryu_parse.h"
+#endif
+
 
 #include "cxxopts.hpp"
 #ifdef __linux__
@@ -24,6 +28,7 @@
 #include <random>
 #include <sstream>
 #include <stdio.h>
+#include <string>
 #include <vector>
 #include <locale.h>
 
@@ -75,6 +80,22 @@ double findmax_from_chars(std::vector<std::string> &s) {
     auto [p, ec] = std::from_chars(st.data(), st.data() + st.size(), x);
     if (p == st.data()) {
       throw std::runtime_error("bug in findmax_from_chars");
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
+#endif
+
+#ifdef ENABLE_RYU
+double findmax_ryus2f(std::vector<std::string> &s) {
+  float answer = 0;
+  float x = 0;
+  for (std::string &st : s) {
+    // Ryu does not track character consumption (boo), but we can at least...
+    Status stat = s2f(st.data(), &x);
+    if (stat != SUCCESS) {
+      throw std::runtime_error(std::string("bug in findmax_ryus2f ")+st + " " + std::to_string(stat));
     }
     answer = answer > x ? answer : x;
   }
@@ -220,6 +241,10 @@ void process(std::vector<std::string> &lines, size_t volume) {
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "volume = " << volumeMB << " MB " << std::endl;
   pretty_print(volume, lines.size(), "strtof", time_it_ns(lines, findmax_strtof, repeat));
+#if 0 && defined(ENABLE_RYU)
+  // Ryu finds the input too long. Not odd, since it's random doubles...
+  pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2f, repeat));
+#endif
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
