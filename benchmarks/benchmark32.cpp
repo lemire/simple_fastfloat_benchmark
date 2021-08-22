@@ -134,11 +134,13 @@ std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
   std::vector<event_count> aggregate;
   event_collector collector;
+  bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     collector.start();
     float ts = function(lines);
-    if (ts == 0) {
+    if (ts == 0 && !printed_bug) {
       printf("bug\n");
+      printed_bug = true;
     }
     aggregate.push_back(collector.end());
  }
@@ -211,11 +213,13 @@ std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
   double min_value = DBL_MAX;
+  bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     t1 = std::chrono::high_resolution_clock::now();
     double ts = function(lines);
-    if (ts == 0) {
+    if (ts == 0 && !printed_bug) {
       printf("bug\n");
+      printed_bug = true;
     }
     t2 = std::chrono::high_resolution_clock::now();
     double dif =
@@ -269,7 +273,6 @@ void fileload(const char *filename) {
   std::cout << "# read " << lines.size() << " lines " << std::endl;
   process(lines, volume);
 }
-
 
 void parse_random_numbers(size_t howmany, bool concise, std::string random_model) {
   std::cout << "# parsing random numbers" << std::endl;
