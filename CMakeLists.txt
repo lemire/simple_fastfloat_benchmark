@@ -18,7 +18,7 @@ set(ABSL_USE_GOOGLETEST_HEAD OFF CACHE INTERNAL "")
 
 FetchContent_Declare(abseil 
      GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
-     GIT_TAG "20200225.2")
+     GIT_TAG "20210324.2")
 FetchContent_GetProperties(abseil)
 if(NOT abseil_POPULATED)
     set(BUILD_TESTING OFF)
@@ -30,7 +30,7 @@ endif()
 
 
 FetchContent_Declare(fast_float
-     GIT_REPOSITORY https://github.com/lemire/fast_float.git
+     GIT_REPOSITORY https://github.com/fastfloat/fast_float.git
      GIT_TAG origin/main
      GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(fast_float)

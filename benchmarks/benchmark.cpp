@@ -180,11 +180,13 @@ std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
   std::vector<event_count> aggregate;
   event_collector collector;
+  bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     collector.start();
     double ts = function(lines);
-    if (ts == 0) {
+    if (ts == 0 && !printed_bug) {
       printf("bug\n");
+      printed_bug = true;
     }
     aggregate.push_back(collector.end());
  }
@@ -256,11 +258,13 @@ std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
   double min_value = DBL_MAX;
+  bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     t1 = std::chrono::high_resolution_clock::now();
     double ts = function(lines);
-    if (ts == 0) {
+    if (ts == 0 && !printed_bug) {
       printf("bug\n");
+      printed_bug = true;
     }
     t2 = std::chrono::high_resolution_clock::now();
     double dif =
@@ -339,6 +343,31 @@ void parse_random_numbers(size_t howmany, bool concise, std::string random_model
   process(lines, volume);
 }
 
+void parse_contrived(size_t howmany, const char *filename) {
+  std::cout << "# parsing contrived numbers" << std::endl;
+  std::cout << "# these are contrived test cases to test specific algorithms" << std::endl;
+  std::vector<std::string> lines;
+  std::cout << "volume: "<< howmany << " floats"  << std::endl;
+
+  std::ifstream inputfile(filename);
+  if (!inputfile) {
+    std::cerr << "can't open " << filename << std::endl;
+    return;
+  }
+  lines.reserve(howmany); // let us reserve plenty of memory.
+  std::string line;
+  while (getline(inputfile, line)) {
+    std::cout << "testing contrived case: \"" << line << "\"" << std::endl;
+    size_t volume = 0;
+    for (size_t i = 0; i < howmany; i++) {
+      lines.push_back(line);
+    }
+    process(lines, volume);
+    lines.clear();
+    std::cout << "-----------------------" << std::endl;
+  }
+}
+
 cxxopts::Options
     options("benchmark",
             "Compute the parsing speed of different number parsers.");
@@ -356,13 +385,19 @@ int main(int argc, char **argv) {
       std::cout << options.help() << std::endl;
       return EXIT_SUCCESS;
     }
-    if (result["file"].as<std::string>().empty()) {
+    auto filename = result["file"].as<std::string>();
+    if (filename.find("contrived") != std::string::npos) {
+      parse_contrived(result["volume"].as<size_t>(), filename.c_str());
+      std::cout << "# You can also provide a filename (with the -f flag): it should contain one "
+                   "string per line corresponding to a number"
+                << std::endl;
+    } else if (filename.empty()) {
       parse_random_numbers(result["volume"].as<size_t>(), result["concise"].as<bool>(), result["model"].as<std::string>());
       std::cout << "# You can also provide a filename (with the -f flag): it should contain one "
                    "string per line corresponding to a number"
                 << std::endl;
     } else {
-      fileload(result["file"].as<std::string>().c_str());
+      fileload(filename.c_str());
     }
   } catch (const cxxopts::OptionException &e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
