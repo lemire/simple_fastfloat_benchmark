@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdint>
 #include <array>
+#include <limits>
 namespace internal {
 /*!
 implements the Grisu2 algorithm for binary to decimal floating-point
