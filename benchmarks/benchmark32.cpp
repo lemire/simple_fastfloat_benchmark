@@ -9,7 +9,8 @@
 
 
 #include "cxxopts.hpp"
-#ifdef __linux__
+#if defined(__linux__) || (__APPLE__ &&  __aarch64__)
+#define USING_COUNTERS
 #include "event_counter.h"
 #endif
 #include <algorithm>
@@ -128,7 +129,7 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
   }
   return answer;
 }
-#ifdef __linux__
+#ifdef USING_COUNTERS
 template <class T>
 std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
                                      T const &function, size_t repeat) {
@@ -169,14 +170,9 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
     double instructions = e.instructions();
     instructions_avg += instructions;
     instructions_min = instructions_min < instructions ? instructions_min : instructions;
-
-    double branch_misses = e.branch_misses();
-    branch_misses_avg += branch_misses;
-    branch_misses_min = branch_misses_min < branch_misses ? branch_misses_min : branch_misses;
   }
   cycles_avg /= events.size();
   instructions_avg /= events.size();
-  branch_misses_avg /= events.size();
   average_ns /= events.size();
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / min_ns,
@@ -188,10 +184,6 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
            instructions_min / volume,
            instructions_min / number_of_floats, 
            (instructions_avg - instructions_min) * 100.0 / instructions_avg);
-    printf(" %8.2f bm/B %8.2f bm/f (+/- %.1f %%) ", 
-           branch_misses_min / volume,
-           branch_misses_min / number_of_floats, 
-           (branch_misses_avg - branch_misses_min) * 100.0 / branch_misses_avg);
 
     printf(" %8.2f c/B %8.2f c/f (+/- %.1f %%) ", 
            cycles_min / volume,
