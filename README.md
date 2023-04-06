@@ -27,7 +27,7 @@ Usage under Windows is similar. After installing cmake and Visual Studio 2019, o
 ```
 cmake -B build .
 cmake --build build --config Release
-.\buildb/enchmarks\Release\benchmark.exe
+.\build\benchmarks\Release\benchmark.exe
 ```
 
 ## Advanced Usage
