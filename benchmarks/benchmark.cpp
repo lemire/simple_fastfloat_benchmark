@@ -56,11 +56,13 @@
 #endif
 #endif
 
-double findmax_doubleconversion(std::vector<std::string> &s) {
+template <typename CharT>
+double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s) {
   double answer = 0;
   double x;
-  int flags = double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
-              double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
+  // from_chars does not allow leading spaces:
+  // double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
+  int flags = double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
               double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
   double empty_string_value = 0.0;
   uc16 separator = double_conversion::StringToDoubleConverter::kNoSeparator;
@@ -68,9 +70,12 @@ double findmax_doubleconversion(std::vector<std::string> &s) {
       flags, empty_string_value, double_conversion::Double::NaN(), NULL, NULL,
       separator);
   int processed_characters_count;
-  for (std::string &st : s) {
-    x = converter.StringToDouble(st.data(), st.size(),
-                                 &processed_characters_count);
+  for (auto &st : s) {
+    if constexpr (std::is_same<CharT, char16_t>::value) {
+      x = converter.StringToDouble((const uc16*)st.data(), st.size(), &processed_characters_count);
+    } else { 
+      x = converter.StringToDouble(st.data(), st.size(), &processed_characters_count);
+    }
     if (processed_characters_count == 0) {
       throw std::runtime_error("bug in findmax_doubleconversion");
     }
@@ -78,7 +83,23 @@ double findmax_doubleconversion(std::vector<std::string> &s) {
   }
   return answer;
 }
+#ifdef _WIN32
+double findmax_strtod_16(std::vector<std::u16string>& s) {
+  double answer = 0;
+  double x = 0;
+  for (auto& st : s) {
+    auto* pr = (wchar_t*)st.data();
+    static _locale_t c_locale = _create_locale(LC_ALL, "C");
+    x = _wcstod_l((const wchar_t *)st.data(), &pr, c_locale);
 
+    if (pr == (const wchar_t*)st.data()) {
+      throw std::runtime_error("bug in findmax_strtod");
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
+#endif
 double findmax_netlib(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
@@ -149,10 +170,11 @@ double findmax_from_chars(std::vector<std::string> &s) {
 }
 #endif
 
-double findmax_fastfloat(std::vector<std::string> &s) {
+template <typename CharT>
+double findmax_fastfloat(std::vector<std::basic_string<CharT>> &s) {
   double answer = 0;
   double x = 0;
-  for (std::string &st : s) {
+  for (auto &st : s) {
     auto [p, ec] = fast_float::from_chars(st.data(), st.data() + st.size(), x);
     if (p == st.data()) {
       throw std::runtime_error("bug in findmax_fastfloat");
@@ -176,8 +198,8 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
   return answer;
 }
 #ifdef USING_COUNTERS
-template <class T>
-std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
+template <class T, class CharT>
+std::vector<event_count> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
                                      T const &function, size_t repeat) {
   std::vector<event_count> aggregate;
   event_collector collector;
@@ -190,7 +212,7 @@ std::vector<event_count> time_it_ns(std::vector<std::string> &lines,
       printed_bug = true;
     }
     aggregate.push_back(collector.end());
- }
+  }
   return aggregate;
 }
 
@@ -242,8 +264,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
 
 }
 #else
-template <class T>
-std::pair<double, double> time_it_ns(std::vector<std::string> &lines,
+template <class T, class CharT>
+std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
                                      T const &function, size_t repeat) {
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
@@ -280,21 +302,52 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
            double(result.first) /number_of_floats );
 }
 #endif 
+
+
+// this is okay, all chars are ASCII
+inline std::u16string widen(std::string line) {
+  std::u16string u16line;
+  u16line.resize(line.size());
+  for (size_t i = 0; i < line.size(); ++i) {
+    u16line[i] = char16_t(line[i]);
+  }
+  return u16line;
+}
+
+std::vector<std::u16string> widen(const std::vector<std::string> &lines) {
+  std::vector<std::u16string> u16lines;
+  u16lines.reserve(lines.size());
+  for (auto const &line : lines) {
+    u16lines.push_back(widen(line));
+  }
+  return u16lines;
+}
+
+
 void process(std::vector<std::string> &lines, size_t volume) {
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
-  std::cout << "volume = " << volumeMB << " MB " << std::endl;
+  std::cout << "ASCII volume = " << volumeMB << " MB " << std::endl;
   pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion, repeat));
+  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion<char>, repeat));
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
 #ifdef ENABLE_RYU
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat));
 #endif
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
-  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat, repeat));
+  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
+  std::vector<std::u16string> lines16 = widen(lines);
+  volume = 2 * volume;
+  volumeMB = volume / (1024. * 1024.);
+  std::cout << "UTF-16 volume = " << volumeMB << " MB " << std::endl;
+  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines16, findmax_doubleconversion<char16_t>, repeat));
+#ifdef _WIN32
+  pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat));
+#endif
+  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines16, findmax_fastfloat<char16_t>, repeat));
 }
 
 void fileload(const char *filename) {
