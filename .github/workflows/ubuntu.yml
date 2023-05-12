@@ -1,0 +1,26 @@
+name: Ubuntu 22.04 Sanitized CI (GCC 11)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ubuntu-build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - {shared: ON}
+          - {shared: OFF}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use cmake
+        run: |
+          mkdir build &&
+          cd build &&
+          cmake  ..   &&
+          cmake --build .
