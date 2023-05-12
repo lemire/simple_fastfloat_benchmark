@@ -1,6 +1,11 @@
+#ifdef __CYGWIN__
+#define _GNU_SOURCE // for strtod_l
+#endif
 
+#ifndef __CYGWIN__
 #include "absl/strings/charconv.h"
 #include "absl/strings/numbers.h"
+#endif
 #include "fast_float/fast_float.h"
 
 #ifdef ENABLE_RYU
@@ -45,8 +50,8 @@
 #include <xlocale.h> // old glibc
 #endif
 #else            // not glibc
-#ifndef _MSC_VER // assume that everything that is not GLIBC and not Visual
-                 // Studio needs xlocale.h
+#if !defined(_MSC_VER) && !defined(__CYGWIN__) // assume that everything that is not GLIBC, Cygwin or Visual
+                                               // Studio needs xlocale.h
 #include <xlocale.h>
 #endif
 #endif
@@ -134,6 +139,7 @@ double findmax_fastfloat(std::vector<std::basic_string<CharT>> &s) {
   return answer;
 }
 
+#ifndef __CYGWIN__
 double findmax_absl_from_chars(std::vector<std::string> &s) {
   double answer = 0;
   double x = 0;
@@ -146,6 +152,8 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
   }
   return answer;
 }
+#endif
+
 #ifdef USING_COUNTERS
 template <class T, class CharT>
 std::vector<event_count> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
@@ -216,7 +224,7 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
 }
 #else
 template <class T, class CharT>
-std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines
+std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
                                      T const &function, size_t repeat) {
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
@@ -277,7 +285,9 @@ void process(std::vector<std::string> &lines, size_t volume) {
   // Ryu finds the input too long. Not odd, since it's random doubles...
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2f, repeat));
 #endif
+#ifndef __CYGWIN__
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
+#endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
