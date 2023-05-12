@@ -224,7 +224,7 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
 }
 #else
 template <class T, class CharT>
-std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines
+std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
                                      T const &function, size_t repeat) {
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
