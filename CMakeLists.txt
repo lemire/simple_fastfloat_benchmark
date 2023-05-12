@@ -11,21 +11,23 @@ endif()
 
 include(FetchContent)
 include(ExternalProject)
-set(ABSL_ENABLE_INSTALL ON)
-set(ABSL_RUN_TEST OFF CACHE INTERNAL "")
-set(ABSL_USE_GOOGLETEST_HEAD OFF CACHE INTERNAL "")
 
+if (NOT CYGWIN)
+    set(ABSL_ENABLE_INSTALL ON)
+    set(ABSL_RUN_TEST OFF CACHE INTERNAL "")
+    set(ABSL_USE_GOOGLETEST_HEAD OFF CACHE INTERNAL "")
 
-FetchContent_Declare(abseil 
-     GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
-     GIT_TAG "20210324.2")
-FetchContent_GetProperties(abseil)
-if(NOT abseil_POPULATED)
-    set(BUILD_TESTING OFF)
-    FetchContent_Populate(abseil)
-    add_subdirectory(${abseil_SOURCE_DIR} ${abseil_BINARY_DIR})
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${abseil_SOURCE_DIR}/absl/copts)
-    include(${abseil_SOURCE_DIR}/absl/copts/AbseilConfigureCopts.cmake)
+    FetchContent_Declare(abseil 
+         GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
+         GIT_TAG "20210324.2")
+    FetchContent_GetProperties(abseil)
+    if(NOT abseil_POPULATED)
+        set(BUILD_TESTING OFF)
+        FetchContent_Populate(abseil)
+        add_subdirectory(${abseil_SOURCE_DIR} ${abseil_BINARY_DIR})
+        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${abseil_SOURCE_DIR}/absl/copts)
+        include(${abseil_SOURCE_DIR}/absl/copts/AbseilConfigureCopts.cmake)
+    endif()
 endif()
 
 
