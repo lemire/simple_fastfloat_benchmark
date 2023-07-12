@@ -183,6 +183,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   double cycles_avg{0};
   double instructions_avg{0};
   double branch_misses_avg{0};
+  double branches_min{0};
+  double branches_avg{0};
   for(event_count e : events) {
     double ns = e.elapsed_ns();
     average_ns += ns;
@@ -195,6 +197,10 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
     double instructions = e.instructions();
     instructions_avg += instructions;
     instructions_min = instructions_min < instructions ? instructions_min : instructions;
+
+    double branches = e.branches();
+    branches_avg += branches;
+    branches_min = branches_min < branches ? branches_min : branches;
   }
   cycles_avg /= events.size();
   instructions_avg /= events.size();
@@ -216,7 +222,9 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
            (cycles_avg - cycles_min) * 100.0 / cycles_avg);
     printf(" %8.2f i/c ", 
            instructions_min /cycles_min);
-    printf(" %8.2f GHz ", 
+    printf(" %8.2f b/f ", 
+           instructions_avg /number_of_floats);
+    printf(" %8.2f GHz ",
            cycles_min / min_ns);
   }
   printf("\n");

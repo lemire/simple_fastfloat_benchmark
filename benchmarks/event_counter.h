@@ -32,12 +32,14 @@ struct event_count {
   enum event_counter_types {
     CPU_CYCLES,
     INSTRUCTIONS,
+    BRANCHES
   };
 
   double elapsed_sec() const { return std::chrono::duration<double>(elapsed).count(); }
   double elapsed_ns() const { return std::chrono::duration<double, std::nano>(elapsed).count(); }
   double cycles() const { return static_cast<double>(event_counts[CPU_CYCLES]); }
   double instructions() const { return static_cast<double>(event_counts[INSTRUCTIONS]); }
+  double branches() const { return static_cast<double>(event_counts[BRANCHES]); }
 
   event_count& operator=(const event_count& other) {
     this->elapsed = other.elapsed;
@@ -94,6 +96,7 @@ struct event_collector {
   event_collector() : linux_events(std::vector<int>{
     PERF_COUNT_HW_CPU_CYCLES,
     PERF_COUNT_HW_INSTRUCTIONS,
+    PERF_COUNT_HW_BRANCH_INSTRUCTIONS // Retired branch instructions
   }) {}
   bool has_events() {
     return linux_events.is_working();
