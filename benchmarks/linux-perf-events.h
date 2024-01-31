@@ -89,8 +89,6 @@ public:
         report_error("event mismatch");
       }
     }
-
-
   }
 
   bool is_working() {

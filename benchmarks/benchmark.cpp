@@ -253,6 +253,7 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   cycles_avg /= events.size();
   instructions_avg /= events.size();
   average_ns /= events.size();
+  branches_avg /= events.size();
   printf("%-40s: %8.2f MB/s (+/- %.1f %%) ", name.data(),
            volumeMB * 1000000000 / min_ns,
            (average_ns - min_ns) * 100.0 / average_ns);
@@ -271,7 +272,7 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
     printf(" %8.2f i/c ", 
            instructions_min /cycles_min);
     printf(" %8.2f b/f ",
-           instructions_avg /number_of_floats);
+           branches_avg /number_of_floats);
     printf(" %8.2f GHz ", 
            cycles_min / min_ns);
   }

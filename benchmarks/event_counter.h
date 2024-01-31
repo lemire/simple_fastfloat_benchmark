@@ -30,16 +30,28 @@ struct event_count {
 
   // The types of counters (so we can read the getter more easily)
   enum event_counter_types {
+<<<<<<< HEAD
     CPU_CYCLES,
     INSTRUCTIONS,
     BRANCH_MISSES
+=======
+    CPU_CYCLES = 0,
+    INSTRUCTIONS = 1,
+    BRANCHES = 2,
+    MISSED_BRANCHES = 3
+>>>>>>> 2d0d081779f796041fbaf8791e99509f7f226dac
   };
 
   double elapsed_sec() const { return std::chrono::duration<double>(elapsed).count(); }
   double elapsed_ns() const { return std::chrono::duration<double, std::nano>(elapsed).count(); }
   double cycles() const { return static_cast<double>(event_counts[CPU_CYCLES]); }
   double instructions() const { return static_cast<double>(event_counts[INSTRUCTIONS]); }
+<<<<<<< HEAD
   double branch_misses() const { return static_cast<double>(event_counts[BRANCH_MISSES]); }
+=======
+  double branches() const { return static_cast<double>(event_counts[BRANCHES]); }
+  double missed_branches() const { return static_cast<double>(event_counts[MISSED_BRANCHES]); }
+>>>>>>> 2d0d081779f796041fbaf8791e99509f7f226dac
 
   event_count& operator=(const event_count& other) {
     this->elapsed = other.elapsed;
@@ -85,6 +97,8 @@ struct event_aggregate {
   double elapsed_ns() const { return total.elapsed_ns() / iterations; }
   double cycles() const { return total.cycles() / iterations; }
   double instructions() const { return total.instructions() / iterations; }
+  double branches() const { return total.branches() / iterations; }
+  double missed_branches() const { return total.missed_branches() / iterations; }
 };
 
 struct event_collector {
@@ -96,7 +110,8 @@ struct event_collector {
   event_collector() : linux_events(std::vector<int>{
     PERF_COUNT_HW_CPU_CYCLES,
     PERF_COUNT_HW_INSTRUCTIONS,
-    PERF_COUNT_HW_BRANCH_INSTRUCTIONS // Retired branch instructions
+    PERF_COUNT_HW_BRANCH_INSTRUCTIONS, // Retired branch instructions
+    PERF_COUNT_HW_BRANCH_MISSES
   }) {}
   bool has_events() {
     return linux_events.is_working();
@@ -135,8 +150,8 @@ struct event_collector {
     }
     count.event_counts[0] = diff.cycles;
     count.event_counts[1] = diff.instructions;
-    count.event_counts[2] = diff.missed_branches;
-    count.event_counts[3] = 0;
+    count.event_counts[2] = diff.branches;
+    count.event_counts[3] = diff.missed_branches;
     count.event_counts[4] = 0;
 #endif
     count.elapsed = end_clock - start_clock;
