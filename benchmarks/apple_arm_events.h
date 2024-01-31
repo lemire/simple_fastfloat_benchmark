@@ -1101,7 +1101,13 @@ inline performance_counters get_counters() {
     }
     return 1;
   }
-
+ /*printf("counters value:\n");
+    for (usize i = 0; i < ev_count; i++) {
+        const event_alias *alias = profile_events + i;
+        usize idx = counter_map[i];
+        u64 val = counters_1[idx] - counters_0[idx];
+        printf("%14s: %llu\n", alias->alias, val);
+    }*/
   return performance_counters{
       counters_0[counter_map[0]], counters_0[counter_map[2]],
       counters_0[counter_map[3]],

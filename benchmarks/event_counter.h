@@ -30,28 +30,18 @@ struct event_count {
 
   // The types of counters (so we can read the getter more easily)
   enum event_counter_types {
-<<<<<<< HEAD
-    CPU_CYCLES,
-    INSTRUCTIONS,
-    BRANCH_MISSES
-=======
     CPU_CYCLES = 0,
     INSTRUCTIONS = 1,
     BRANCHES = 2,
     MISSED_BRANCHES = 3
->>>>>>> 2d0d081779f796041fbaf8791e99509f7f226dac
   };
 
   double elapsed_sec() const { return std::chrono::duration<double>(elapsed).count(); }
   double elapsed_ns() const { return std::chrono::duration<double, std::nano>(elapsed).count(); }
   double cycles() const { return static_cast<double>(event_counts[CPU_CYCLES]); }
   double instructions() const { return static_cast<double>(event_counts[INSTRUCTIONS]); }
-<<<<<<< HEAD
-  double branch_misses() const { return static_cast<double>(event_counts[BRANCH_MISSES]); }
-=======
   double branches() const { return static_cast<double>(event_counts[BRANCHES]); }
   double missed_branches() const { return static_cast<double>(event_counts[MISSED_BRANCHES]); }
->>>>>>> 2d0d081779f796041fbaf8791e99509f7f226dac
 
   event_count& operator=(const event_count& other) {
     this->elapsed = other.elapsed;
