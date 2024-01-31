@@ -1103,8 +1103,8 @@ inline performance_counters get_counters() {
   }
 
   return performance_counters{
-      counters_0[counter_map[0]], counters_0[counter_map[3]],
-      counters_0[counter_map[2]],
+      counters_0[counter_map[0]], counters_0[counter_map[2]],
+      counters_0[counter_map[3]],
       counters_0[counter_map[1]]};
 }
 
