@@ -19,7 +19,7 @@ if (NOT CYGWIN)
 
     FetchContent_Declare(abseil 
          GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
-         GIT_TAG "20210324.2")
+         GIT_TAG "d7aaad8")
     FetchContent_GetProperties(abseil)
     if(NOT abseil_POPULATED)
         set(BUILD_TESTING OFF)
