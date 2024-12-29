@@ -62,7 +62,7 @@
 #endif
 
 template <typename CharT>
-double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s) {
+double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s, bool expect_error) {
   double answer = 0;
   double x;
   // from_chars does not allow leading spaces:
@@ -81,7 +81,7 @@ double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s) {
     } else { 
       x = converter.StringToDouble(st.data(), st.size(), &processed_characters_count);
     }
-    if (processed_characters_count == 0) {
+    if (processed_characters_count == 0 && expect_error == false) {
       throw std::runtime_error("bug in findmax_doubleconversion");
     }
     answer = answer > x ? answer : x;
@@ -89,7 +89,7 @@ double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s) {
   return answer;
 }
 #ifdef _WIN32
-double findmax_strtod_16(std::vector<std::u16string>& s) {
+double findmax_strtod_16(std::vector<std::u16string>& s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (auto& st : s) {
@@ -97,7 +97,7 @@ double findmax_strtod_16(std::vector<std::u16string>& s) {
     static _locale_t c_locale = _create_locale(LC_ALL, "C");
     x = _wcstod_l((const wchar_t *)st.data(), &pr, c_locale);
 
-    if (pr == (const wchar_t*)st.data()) {
+    if (pr == (const wchar_t*)st.data() && expect_error == false) {
       throw std::runtime_error("bug in findmax_strtod");
     }
     answer = answer > x ? answer : x;
@@ -105,13 +105,13 @@ double findmax_strtod_16(std::vector<std::u16string>& s) {
   return answer;
 }
 #endif
-double findmax_netlib(std::vector<std::string> &s) {
+double findmax_netlib(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     char *pr = (char *)st.data();
     x = netlib_strtod(st.data(), &pr);
-    if (pr == st.data()) {
+    if (pr == st.data() && expect_error == false) {
       throw std::runtime_error(std::string("bug in findmax_netlib ")+st);
     }
     answer = answer > x ? answer : x;
@@ -120,13 +120,13 @@ double findmax_netlib(std::vector<std::string> &s) {
 }
 
 #ifdef ENABLE_RYU
-double findmax_ryus2d(std::vector<std::string> &s) {
+double findmax_ryus2d(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     // Ryu does not track character consumption (boo), but we can at least...
     Status stat = s2d(st.data(), &x);
-    if (stat != SUCCESS) {
+    if (stat != SUCCESS && expect_error == false) {
       throw std::runtime_error(std::string("bug in findmax_ryus2d ")+st + " " + std::to_string(stat));
     }
     answer = answer > x ? answer : x;
@@ -135,7 +135,7 @@ double findmax_ryus2d(std::vector<std::string> &s) {
 }
 #endif
 
-double findmax_strtod(std::vector<std::string> &s) {
+double findmax_strtod(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
@@ -147,7 +147,7 @@ double findmax_strtod(std::vector<std::string> &s) {
     static locale_t c_locale = newlocale(LC_ALL_MASK, "C", NULL);
     x = strtod_l(st.data(), &pr, c_locale);
 #endif
-    if (pr == st.data()) {
+    if (pr == st.data() && expect_error == false) {
       throw std::runtime_error("bug in findmax_strtod");
     }
     answer = answer > x ? answer : x;
@@ -161,12 +161,12 @@ double findmax_strtod(std::vector<std::string> &s) {
 #endif
 
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
-double findmax_from_chars(std::vector<std::string> &s) {
+double findmax_from_chars(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     auto [p, ec] = std::from_chars(st.data(), st.data() + st.size(), x);
-    if (p == st.data()) {
+    if (p == st.data() && expect_error == false) {
       throw std::runtime_error("bug in findmax_from_chars");
     }
     answer = answer > x ? answer : x;
@@ -176,12 +176,12 @@ double findmax_from_chars(std::vector<std::string> &s) {
 #endif
 
 template <typename CharT>
-double findmax_fastfloat(std::vector<std::basic_string<CharT>> &s) {
+double findmax_fastfloat(std::vector<std::basic_string<CharT>> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (auto &st : s) {
     auto [p, ec] = fast_float::from_chars(st.data(), st.data() + st.size(), x);
-    if (p == st.data()) {
+    if (p == st.data() && expect_error == false) {
       throw std::runtime_error("bug in findmax_fastfloat");
     }
     answer = answer > x ? answer : x;
@@ -190,12 +190,12 @@ double findmax_fastfloat(std::vector<std::basic_string<CharT>> &s) {
 }
 
 #ifndef __CYGWIN__
-double findmax_absl_from_chars(std::vector<std::string> &s) {
+double findmax_absl_from_chars(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     auto [p, ec] = absl::from_chars(st.data(), st.data() + st.size(), x);
-    if (p == st.data()) {
+    if (p == st.data() && expect_error == false) {
       throw std::runtime_error("bug in findmax_absl_from_chars");
     }
     answer = answer > x ? answer : x;
@@ -207,14 +207,14 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
 #ifdef USING_COUNTERS
 template <class T, class CharT>
 std::vector<event_count> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
-                                     T const &function, size_t repeat) {
+                                     T const &function, size_t repeat, bool expect_error) {
   std::vector<event_count> aggregate;
   event_collector collector;
   bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     collector.start();
-    double ts = function(lines);
-    if (ts == 0 && !printed_bug) {
+    double ts = function(lines,expect_error);
+    if (ts == 0 && !printed_bug && expect_error == false) {
       printf("bug\n");
       printed_bug = true;
     }
@@ -290,14 +290,14 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
 #else
 template <class T, class CharT>
 std::pair<double, double> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
-                                     T const &function, size_t repeat) {
+                                     T const &function, size_t repeat, bool expect_error) {
   std::chrono::high_resolution_clock::time_point t1, t2;
   double average = 0;
   double min_value = DBL_MAX;
   bool printed_bug = false;
   for (size_t i = 0; i < repeat; i++) {
     t1 = std::chrono::high_resolution_clock::now();
-    double ts = function(lines);
+    double ts = function(lines, expect_error);
     if (ts == 0 && !printed_bug) {
       printf("bug\n");
       printed_bug = true;
@@ -348,35 +348,35 @@ std::vector<std::u16string> widen(const std::vector<std::string> &lines) {
 }
 
 
-void process(std::vector<std::string> &lines, size_t volume) {
+void process(std::vector<std::string> &lines, size_t volume, bool expect_error) {
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "ASCII volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion<char>, repeat));
-  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
+  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat, expect_error));
+  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion<char>, repeat, expect_error));
+  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat, expect_error));
 #ifdef ENABLE_RYU
-  pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat));
+  pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat, expect_error));
 #endif
 #ifndef __CYGWIN__
-  pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
+  pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat, expect_error));
 #endif
-  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
+  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat, expect_error));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
-  pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
+  pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat, expect_error));
 #endif
   std::vector<std::u16string> lines16 = widen(lines);
   volume = 2 * volume;
   volumeMB = volume / (1024. * 1024.);
   std::cout << "UTF-16 volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines16, findmax_doubleconversion<char16_t>, repeat));
+  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines16, findmax_doubleconversion<char16_t>, repeat, expect_error));
 #ifdef _WIN32
-  pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat));
+  pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat, expect_error));
 #endif
-  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines16, findmax_fastfloat<char16_t>, repeat));
+  pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines16, findmax_fastfloat<char16_t>, repeat, expect_error));
 }
 
-void fileload(const char *filename) {
+void fileload(const char *filename, bool expect_error) {
   std::ifstream inputfile(filename);
   if (!inputfile) {
     std::cerr << "can't open " << filename << std::endl;
@@ -391,7 +391,7 @@ void fileload(const char *filename) {
     lines.push_back(line);
   }
   std::cout << "# read " << lines.size() << " lines " << std::endl;
-  process(lines, volume);
+  process(lines, volume, expect_error);
 }
 
 
@@ -409,7 +409,7 @@ void parse_random_numbers(size_t howmany, bool concise, std::string random_model
     volume += line.size();
     lines.push_back(line);
   }
-  process(lines, volume);
+  process(lines, volume, false);
 }
 
 void parse_contrived(size_t howmany, const char *filename) {
@@ -431,7 +431,7 @@ void parse_contrived(size_t howmany, const char *filename) {
     for (size_t i = 0; i < howmany; i++) {
       lines.push_back(line);
     }
-    process(lines, volume);
+    process(lines, volume, false);
     lines.clear();
     std::cout << "-----------------------" << std::endl;
   }
@@ -448,8 +448,10 @@ int main(int argc, char **argv) {
         ("f,file", "File name.", cxxopts::value<std::string>()->default_value(""))
         ("v,volume", "Volume (number of floats generated).", cxxopts::value<size_t>()->default_value("100000"))
         ("m,model", "Random Model.", cxxopts::value<std::string>()->default_value("uniform"))
+        ("e,errors", "Enable testing of invalid inputs. inputs should come from -f/--file option.")
         ("h,help","Print usage.");
     auto result = options.parse(argc, argv);
+    bool test_errors = result["errors"].as<bool>();
     if(result["help"].as<bool>()) {
       std::cout << options.help() << std::endl;
       return EXIT_SUCCESS;
@@ -466,7 +468,7 @@ int main(int argc, char **argv) {
                    "string per line corresponding to a number"
                 << std::endl;
     } else {
-      fileload(filename.c_str());
+      fileload(filename.c_str(), test_errors);
     }
   } catch (const cxxopts::OptionException &e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
