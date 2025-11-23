@@ -37,13 +37,6 @@ FetchContent_Declare(fast_float
      GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(fast_float)
 
-
-FetchContent_Declare(doubleconversion 
-     GIT_REPOSITORY https://github.com/google/double-conversion.git 
-     GIT_TAG "v3.1.5")
-FetchContent_GetProperties(doubleconversion)
-FetchContent_MakeAvailable(doubleconversion)
-
 option(SIMPLE_FASTFLOAT_BENCHMARK_USE_RYU "build Ryu (cause builds failures on many systems)" OFF)
 
 if(SIMPLE_FASTFLOAT_BENCHMARK_USE_RYU)
