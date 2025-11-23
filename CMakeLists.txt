@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(SimpleFastFloatBenchmark VERSION 0.1.0 LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -19,7 +19,7 @@ if (NOT CYGWIN)
 
     FetchContent_Declare(abseil 
          GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
-         GIT_TAG "20210324.2")
+         GIT_TAG "20250814.1")
     FetchContent_GetProperties(abseil)
     if(NOT abseil_POPULATED)
         set(BUILD_TESTING OFF)
