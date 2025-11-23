@@ -13,9 +13,6 @@
 #endif
 
 
-#include "double-conversion/ieee.h"
-#include "double-conversion/double-conversion.h"
-
 #define IEEE_8087
 #include "cxxopts.hpp"
 #if defined(__linux__) || (__APPLE__ &&  __aarch64__)
@@ -61,33 +58,6 @@
 #endif
 #endif
 
-template <typename CharT>
-double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s) {
-  double answer = 0;
-  double x;
-  // from_chars does not allow leading spaces:
-  // double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
-  int flags = double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
-              double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
-  double empty_string_value = 0.0;
-  uc16 separator = double_conversion::StringToDoubleConverter::kNoSeparator;
-  double_conversion::StringToDoubleConverter converter(
-      flags, empty_string_value, double_conversion::Double::NaN(), NULL, NULL,
-      separator);
-  int processed_characters_count;
-  for (auto &st : s) {
-    if constexpr (std::is_same<CharT, char16_t>::value) {
-      x = converter.StringToDouble((const uc16*)st.data(), st.size(), &processed_characters_count);
-    } else { 
-      x = converter.StringToDouble(st.data(), st.size(), &processed_characters_count);
-    }
-    if (processed_characters_count == 0) {
-      throw std::runtime_error("bug in findmax_doubleconversion");
-    }
-    answer = answer > x ? answer : x;
-  }
-  return answer;
-}
 #ifdef _WIN32
 double findmax_strtod_16(std::vector<std::u16string>& s) {
   double answer = 0;
@@ -233,6 +203,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
   double instructions_avg{0};
   double branches_min{0};
   double branches_avg{0};
+  double branch_misses_min{0};
+  double branch_misses_avg{0};
   for(event_count e : events) {
     double ns = e.elapsed_ns();
     average_ns += ns;
@@ -249,6 +221,10 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
     double branches = e.branches();
     branches_avg += branches;
     branches_min = branches_min < branches ? branches_min : branches;
+
+    double branch_misses = e.missed_branches();
+    branch_misses_avg += branch_misses;
+    branch_misses_min = branch_misses_min < branch_misses ? branch_misses_min : branch_misses;
   }
   cycles_avg /= events.size();
   instructions_avg /= events.size();
@@ -273,6 +249,8 @@ void pretty_print(double volume, size_t number_of_floats, std::string name, std:
            instructions_min /cycles_min);
     printf(" %8.2f b/f ",
            branches_avg /number_of_floats);
+    printf(" %8.2f bm/f ",
+           branch_misses_avg /number_of_floats);
     printf(" %8.2f GHz ", 
            cycles_min / min_ns);
   }
@@ -345,7 +323,6 @@ void process(std::vector<std::string> &lines, size_t volume) {
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "ASCII volume = " << volumeMB << " MB " << std::endl;
   pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion<char>, repeat));
   pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
 #ifdef ENABLE_RYU
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat));
@@ -361,7 +338,6 @@ void process(std::vector<std::string> &lines, size_t volume) {
   volume = 2 * volume;
   volumeMB = volume / (1024. * 1024.);
   std::cout << "UTF-16 volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines16, findmax_doubleconversion<char16_t>, repeat));
 #ifdef _WIN32
   pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat));
 #endif

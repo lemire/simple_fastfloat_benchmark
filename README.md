@@ -66,7 +66,7 @@ There a different models available, they are printed out in the console.
 GNU  GCC 9 (Linux):
 ```
 $ ./build/benchmarks/benchmark 
-# parsing random integers in the range [0,1)
+# parsing random numbers in the range [0,1)
 volume = 2.09808 MB 
 netlib                                  :   271.18 MB/s (+/- 1.2 %)    12.93 Mfloat/s  
 doubleconversion                        :   225.35 MB/s (+/- 1.2 %)    10.74 Mfloat/s  
