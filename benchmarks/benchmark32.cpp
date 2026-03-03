@@ -8,6 +8,8 @@
 #endif
 #include "fast_float/fast_float.h"
 
+#include "ffc.h"
+
 #ifdef ENABLE_RYU
 #include "ryu_parse.h"
 #endif
@@ -154,6 +156,19 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
 }
 #endif
 
+double findmax_ffc(std::vector<std::string> &s) {
+  double answer = 0;
+  float x = 0;
+  for (std::string &st : s) {
+    auto res = ffc_from_chars_float(st.data(), st.data() + st.size(), &x);
+    if (res.outcome != FFC_OUTCOME_OK) {
+      throw std::runtime_error("bug in findmax_ffc");
+    }
+    answer = answer > x ? answer : x;
+  }
+  return answer;
+}
+
 #ifdef USING_COUNTERS
 template <class T, class CharT>
 std::vector<event_count> time_it_ns(std::vector<std::basic_string<CharT>> &lines,
@@ -297,6 +312,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
+  pretty_print(volume, lines.size(), "ffc", time_it_ns(lines, findmax_ffc, repeat));
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
