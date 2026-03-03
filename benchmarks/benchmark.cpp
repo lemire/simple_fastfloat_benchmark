@@ -7,9 +7,9 @@
 #include "absl/strings/numbers.h"
 #endif
 #include "fast_float/fast_float.h"
-
+extern "C" {
 #include "ffc.h"
-
+}
 #ifdef ENABLE_RYU
 #include "ryu_parse.h"
 #endif
