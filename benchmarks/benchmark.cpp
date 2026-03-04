@@ -58,33 +58,6 @@
 #endif
 #endif
 
-template <typename CharT>
-double findmax_doubleconversion(std::vector<std::basic_string<CharT>> &s, bool expect_error) {
-  double answer = 0;
-  double x;
-  // from_chars does not allow leading spaces:
-  // double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
-  int flags = double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
-              double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
-  double empty_string_value = 0.0;
-  uc16 separator = double_conversion::StringToDoubleConverter::kNoSeparator;
-  double_conversion::StringToDoubleConverter converter(
-      flags, empty_string_value, double_conversion::Double::NaN(), NULL, NULL,
-      separator);
-  int processed_characters_count;
-  for (auto &st : s) {
-    if constexpr (std::is_same<CharT, char16_t>::value) {
-      x = converter.StringToDouble((const uc16*)st.data(), st.size(), &processed_characters_count);
-    } else { 
-      x = converter.StringToDouble(st.data(), st.size(), &processed_characters_count);
-    }
-    if (processed_characters_count == 0 && expect_error == false) {
-      throw std::runtime_error("bug in findmax_doubleconversion");
-    }
-    answer = answer > x ? answer : x;
-  }
-  return answer;
-}
 #ifdef _WIN32
 double findmax_strtod_16(std::vector<std::u16string>& s, bool expect_error) {
   double answer = 0;
