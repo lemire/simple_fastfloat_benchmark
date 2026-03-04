@@ -7,9 +7,14 @@
 #include "absl/strings/numbers.h"
 #endif
 #include "fast_float/fast_float.h"
+
+#if !defined(_MSC_VER) && !defined(__CYGWIN__)
 extern "C" {
 #include "ffc.h"
 }
+#define FFC_IS_AVAILABLE 1
+#endif // !defined(_MSC_VER) && !defined(__CYGWIN__)
+
 #ifdef ENABLE_RYU
 #include "ryu_parse.h"
 #endif
@@ -176,6 +181,7 @@ double findmax_absl_from_chars(std::vector<std::string> &s, bool expect_error) {
 }
 #endif
 
+#if FFC_IS_AVAILABLE
 double findmax_ffc(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
@@ -188,6 +194,7 @@ double findmax_ffc(std::vector<std::string> &s, bool expect_error) {
   }
   return answer;
 }
+#endif
 
 #ifdef USING_COUNTERS
 template <class T, class CharT>
@@ -346,7 +353,9 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat, expect_error));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat, expect_error));
+#if FFC_IS_AVAILABLE
   pretty_print(volume, lines.size(), "ffc", time_it_ns(lines, findmax_ffc, repeat, expect_error));
+#endif
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat, expect_error));
 #endif
