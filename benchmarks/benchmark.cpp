@@ -13,9 +13,6 @@
 #endif
 
 
-#include "double-conversion/ieee.h"
-#include "double-conversion/double-conversion.h"
-
 #define IEEE_8087
 #include "cxxopts.hpp"
 #if defined(__linux__) || (__APPLE__ &&  __aarch64__)
@@ -352,9 +349,8 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "ASCII volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat, expect_error));
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines, findmax_doubleconversion<char>, repeat, expect_error));
-  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat, expect_error));
+  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
+  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
 #ifdef ENABLE_RYU
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat, expect_error));
 #endif
@@ -369,7 +365,6 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   volume = 2 * volume;
   volumeMB = volume / (1024. * 1024.);
   std::cout << "UTF-16 volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "doubleconversion", time_it_ns(lines16, findmax_doubleconversion<char16_t>, repeat, expect_error));
 #ifdef _WIN32
   pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat, expect_error));
 #endif
