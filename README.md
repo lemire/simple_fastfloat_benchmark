@@ -73,6 +73,16 @@ Parse strings generated from floats in the `int_e_int`model (credit @alexey-milo
 
 There a different models available, they are printed out in the console.
 
+## Testing Invalid Inputs
+
+You can test how parsers handle invalid or malformed input strings by using the `--errors` flag with the `-f` option:
+
+```
+./build/benchmarks/benchmark -f data/malformed_numbers.txt --errors
+```
+
+This will run the benchmarks on a set of malformed number strings to see how each parser behaves with invalid input. This is only support for the `benchmark` executable.
+
 ## Example output
 
 

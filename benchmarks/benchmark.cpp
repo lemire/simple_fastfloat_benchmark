@@ -179,12 +179,12 @@ double findmax_absl_from_chars(std::vector<std::string> &s, bool expect_error) {
 #endif
 
 #ifdef __clang__
-double findmax_ffc(std::vector<std::string> &s) {
+double findmax_ffc(std::vector<std::string> &s, bool expect_error) {
   double answer = 0;
   double x = 0;
   for (std::string &st : s) {
     auto res = ffc_from_chars_double(st.data(), st.data() + st.size(), &x);
-    if (res.outcome != FFC_OUTCOME_OK) {
+    if (res.outcome != FFC_OUTCOME_OK && expect_error == false) {
       throw std::runtime_error("bug in findmax_ffc");
     }
     answer = answer > x ? answer : x;
@@ -341,8 +341,8 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   size_t repeat = 100;
   double volumeMB = volume / (1024. * 1024.);
   std::cout << "ASCII volume = " << volumeMB << " MB " << std::endl;
-  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat));
-  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat));
+  pretty_print(volume, lines.size(), "netlib", time_it_ns(lines, findmax_netlib, repeat, expect_error));
+  pretty_print(volume, lines.size(), "strtod", time_it_ns(lines, findmax_strtod, repeat, expect_error));
 #ifdef ENABLE_RYU
   pretty_print(volume, lines.size(), "ryu_parse", time_it_ns(lines, findmax_ryus2d, repeat, expect_error));
 #endif
