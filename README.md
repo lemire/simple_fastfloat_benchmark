@@ -17,6 +17,19 @@ cmake --build build
 
 While the `fast_float` library only requires C++11, for this benchmark, we are assuming that your compiler supports C++17.
 
+We also include the ffc function,  but only when LLVM/clang is detected. To
+include ffc, configure your project like so:
+
+```
+CXX=clang++ cmake -B build 
+```
+
+or
+
+```
+cmake -B build -DCMAKE_CXX_COMPILER=clang++
+```
+
 You may use docker to run these benchmarks easily on a variety of platforms: see https://github.com/lemire/docker_programming_station
 
 
