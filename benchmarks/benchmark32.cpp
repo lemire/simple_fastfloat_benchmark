@@ -7,9 +7,11 @@
 #include "absl/strings/numbers.h"
 #endif
 #include "fast_float/fast_float.h"
+#ifdef __clang__
 extern "C" {
 #include "ffc.h"
 }
+#endif
 #ifdef ENABLE_RYU
 #include "ryu_parse.h"
 #endif
@@ -156,6 +158,7 @@ double findmax_absl_from_chars(std::vector<std::string> &s) {
 }
 #endif
 
+#ifdef __clang__
 double findmax_ffc(std::vector<std::string> &s) {
   double answer = 0;
   float x = 0;
@@ -168,6 +171,7 @@ double findmax_ffc(std::vector<std::string> &s) {
   }
   return answer;
 }
+#endif
 
 #ifdef USING_COUNTERS
 template <class T, class CharT>
@@ -312,7 +316,9 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
+#ifdef __clang__
   pretty_print(volume, lines.size(), "ffc", time_it_ns(lines, findmax_ffc, repeat));
+#endif
 #ifdef FROM_CHARS_AVAILABLE_MAYBE
   pretty_print(volume, lines.size(), "from_chars", time_it_ns(lines, findmax_from_chars, repeat));
 #endif
