@@ -39,9 +39,6 @@ FetchContent_Declare(ffc
      GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(ffc)
 
-add_library(ffc INTERFACE)
-target_include_directories(ffc INTERFACE ${ffc_SOURCE_DIR})
-
 option(SIMPLE_FASTFLOAT_BENCHMARK_USE_RYU "build Ryu (cause builds failures on many systems)" OFF)
 
 if(SIMPLE_FASTFLOAT_BENCHMARK_USE_RYU)
