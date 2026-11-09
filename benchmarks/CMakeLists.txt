@@ -1,5 +1,5 @@
-add_executable(benchmark benchmark.cpp to_chars.cpp)
-add_executable(benchmark32 benchmark32.cpp to_chars.cpp)
+add_executable(benchmark benchmark.cpp to_chars.cpp fastfloat_rtn.cpp)
+add_executable(benchmark32 benchmark32.cpp to_chars.cpp fastfloat_rtn.cpp)
 set_property(
     TARGET benchmark benchmark32
     PROPERTY CXX_STANDARD 17)
