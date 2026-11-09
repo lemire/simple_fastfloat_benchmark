@@ -61,6 +61,10 @@ Parse strings generated from floats in the `int_e_int`model (credit @alexey-milo
 
 There a different models available, they are printed out in the console.
 
+The `fastfloat (assume nearest)` lines time fast_float compiled with
+`FASTFLOAT_ROUNDS_TO_NEAREST`: fast_float then assumes the default rounding
+mode and skips a check before its fast path (see the fast_float README).
+
 ## Testing Invalid Inputs
 
 You can test how parsers handle invalid or malformed input strings by using the `--errors` flag with the `-f` option:

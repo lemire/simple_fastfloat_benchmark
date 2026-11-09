@@ -7,6 +7,7 @@
 #include "absl/strings/numbers.h"
 #endif
 #include "fast_float/fast_float.h"
+#include "fastfloat_rtn.h"
 
 #if !defined(_MSC_VER) && !defined(__CYGWIN__)
 extern "C" {
@@ -353,6 +354,7 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat, expect_error));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat, expect_error));
+  pretty_print(volume, lines.size(), "fastfloat (assume nearest)", time_it_ns(lines, findmax_fastfloat_rtn<char>, repeat, expect_error));
 #if FFC_IS_AVAILABLE
   pretty_print(volume, lines.size(), "ffc", time_it_ns(lines, findmax_ffc, repeat, expect_error));
 #endif
@@ -367,6 +369,7 @@ void process(std::vector<std::string> &lines, size_t volume, bool expect_error) 
   pretty_print(volume, lines.size(), "wcstod", time_it_ns(lines16, findmax_strtod_16, repeat, expect_error));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines16, findmax_fastfloat<char16_t>, repeat, expect_error));
+  pretty_print(volume, lines.size(), "fastfloat (assume nearest)", time_it_ns(lines16, findmax_fastfloat_rtn<char16_t>, repeat, expect_error));
 }
 
 void fileload(const char *filename, bool expect_error) {

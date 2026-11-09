@@ -7,6 +7,7 @@
 #include "absl/strings/numbers.h"
 #endif
 #include "fast_float/fast_float.h"
+#include "fastfloat_rtn.h"
 #if !defined(_MSC_VER) && !defined(__CYGWIN__)
 extern "C" {
 #include "ffc.h"
@@ -316,6 +317,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "abseil", time_it_ns(lines, findmax_absl_from_chars, repeat));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines, findmax_fastfloat<char>, repeat));
+  pretty_print(volume, lines.size(), "fastfloat (assume nearest)", time_it_ns(lines, findmax_fastfloat32_rtn<char>, repeat));
 #if FFC_IS_AVAILABLE
   pretty_print(volume, lines.size(), "ffc", time_it_ns(lines, findmax_ffc, repeat));
 #endif
@@ -330,6 +332,7 @@ void process(std::vector<std::string> &lines, size_t volume) {
   pretty_print(volume, lines.size(), "wcstof", time_it_ns(lines16, findmax_strtof_16, repeat));
 #endif
   pretty_print(volume, lines.size(), "fastfloat", time_it_ns(lines16, findmax_fastfloat<char16_t>, repeat));
+  pretty_print(volume, lines.size(), "fastfloat (assume nearest)", time_it_ns(lines16, findmax_fastfloat32_rtn<char16_t>, repeat));
 
 }
 
